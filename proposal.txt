@@ -1,0 +1,9 @@
+As many C Project repositories do, every source files will be in a src folder
+and there will be no subfolder.
+
+Maybe, to differentiate client from server, calling filename as
+
+c_$(FILENAME)
+s_$(FILENAME)
+
+or something like that ?
