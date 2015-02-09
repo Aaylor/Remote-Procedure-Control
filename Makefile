@@ -15,9 +15,14 @@ CLIENT_OBJECTS=$(CLIENT_SOURCES:.c=.o)
 SERVER_SOURCES=$(wildcard $(SRC)s_*.c)
 SERVER_OBJECTS=$(SERVER_SOURCES:.c=.o)
 
-.PHONY: all clean
+DOXYGEN=$(shell which doxygen)
+DOXYGEN_FLAGS=
+DOXYGEN_MAIN_CONF=doc/rpc.conf
+DOC_FOLDER=doc/rpc
 
 
+
+.PHONY: all clean doc doc-clean
 
 all: $(TARGETS)
 
@@ -30,7 +35,12 @@ server: $(SERVER_OBJECTS)
 $(OBJECTS): $(SOURCES)
 	$(CC) -o $@ -c $< $(CFLAGS)
 
+doc:
+	$(DOXYGEN) $(DOXYGEN_FLAGS) $(DOXYGEN_MAIN_CONF) > /dev/null
 
-clean:
+doc-clean:
+	rm -rf $(DOC_FOLDER)
+
+clean: doc-clean
 	rm -f $(OBJECTS)
 
