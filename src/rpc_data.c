@@ -1,4 +1,5 @@
 
+#include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,7 +40,7 @@ int get_int_characters(int number)
     return cpt;
 }
 
-char *serialize_data(struct rpc_arg *arg)
+char *serialize_data(const struct rpc_arg *arg)
 {
     return tserialize_data(arg->typ, arg->data);
 }

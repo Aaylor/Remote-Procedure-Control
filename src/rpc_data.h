@@ -13,6 +13,18 @@
  */
 
 
+/* PROTOCOL :
+ *  <length : int>
+ *  <command : string>
+ *  <typ>
+ *  <nb_arg : typ>
+ *  <typ1><arg1>
+ *  <typ2><arg2>
+ *  ...
+ *  <typN><argN>
+ */
+
+
 
 /**
  * @brief Represents the type void.
@@ -72,14 +84,13 @@ struct rpc_arg {
 
 };
 
-
 /**
  * @brief Serialize the data before sending it.
  * WARNING: the memory has to be deallocate after usage.
  * @param arg the argument.
  * @return the serialized message.
  */
-char *serialize_data(struct rpc_arg *arg);
+char *serialize_data(const struct rpc_arg *arg);
 
 /**
  * @brief Serialize the data before sending it.
