@@ -3,8 +3,8 @@
 
 
 /**
- * @file c_client.c
- * @brief Main file to handle clients
+ * @file rpc_data.h
+ * @brief Handle data types.
  * @author Tortrat-Gentilhomme Nicolas
  * @author Raymond Nicolas
  * @author Runarvot Loïc
@@ -72,4 +72,23 @@ struct rpc_arg {
 
 };
 
+
+/**
+ * @brief Serialize the data before sending it.
+ * WARNING: the memory has to be deallocate after usage.
+ * @param arg the argument.
+ * @return the serialized message.
+ */
+char *serialize_data(struct rpc_arg *arg);
+
+/**
+ * @brief Serialize the data before sending it.
+ * WARNING: the memory has to be deallocate after usage.
+ * @param typ the argument type.
+ * @param data the data.
+ * @return the serialized message.
+ */
+char *tserialize_data(unsigned int typ, void *data);
+
 #endif /* RPC_DATA_H */
+
