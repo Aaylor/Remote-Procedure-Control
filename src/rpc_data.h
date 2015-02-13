@@ -13,15 +13,26 @@
  */
 
 
-/* PROTOCOL :
- *  <length : int>
- *  <command : string>
- *  <typ>
- *  <nb_arg : typ>
- *  <typ1><arg1>
- *  <typ2><arg2>
+/* SENDER PROTOCOL (client → server):
+ *  <message_length : int [4 octet]>
+ *  <command_length : int [4 octet]>
+ *  <command        : char * [1 octet par charactère]>
+ *  <typ            : 1 octet>
+ *  <typ1           : 1 octet>
+ *  <arg1           : {size of arg : dependant of the type}>
+ *  <typ2>          ...
+ *  <arg2>          ...
  *  ...
- *  <typN><argN>
+ *  <typN>          ...
+ *  <argN>          ...
+ */
+
+/* ANSWER PROTOCOL (server → client):
+ *  <message_type   : 1 octet>
+ * ----- if ret type is OK ----
+ *  <arg            : {size of arg : dependant of the type}>
+ * ----------------------------
+ *  --> after : implements better error msg
  */
 
 
