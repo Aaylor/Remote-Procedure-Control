@@ -1,5 +1,9 @@
+UNAME = $(shell uname -s)
+
 CC=gcc
 CFLAGS=-Wall -pedantic -std=c99 -D _POSIX_C_SOURCE=200112L -Werror -Wextra
+
+#=-=-=-=-=-=-=-= RPC Variables =-=-=-=-=-=-=-=-=#
 
 SRC=src/
 BIN=bin/
@@ -15,6 +19,13 @@ CLIENT_OBJECTS=$(CLIENT_SOURCES:.c=.o)
 SERVER_SOURCES=$(wildcard $(SRC)s_*.c)
 SERVER_OBJECTS=$(SERVER_SOURCES:.c=.o)
 
+#=-=-=-=-=-= Librairies variables  =-=-=-=-=-=-=#
+
+LIBNET=libs/libnet
+LIBNET_DYN=net
+
+#=-=-=-=-=-=-=-= Documentation =-=-=-=-=-=-=-=-=#
+
 DOXYGEN=$(shell which doxygen)
 DOXYGEN_FLAGS=
 DOXYGEN_MAIN_CONF=doc/rpc.conf
@@ -22,18 +33,23 @@ DOC_FOLDER=doc/rpc
 
 
 
-.PHONY: all clean doc doc-clean
+.PHONY: all libs doc doc-clean libs-clean clean
 
-all: $(TARGETS)
+all: libs $(TARGETS)
+
+libs:
+	@echo "=-=-= making libnet =-=-=-=-=-=-=-=-=-="
+	@make dyn -C $(LIBNET)
+	@echo "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
 
 client: $(CLIENT_OBJECTS)
-	$(CC) -o $(BIN)$@ $^
+	$(CC) -L$(LIBNET) -o $(BIN)$@ $^ -l$(LIBNET_DYN)
 
 server: $(SERVER_OBJECTS)
-	$(CC) -o $(BIN)$@ $^
+	$(CC) -L$(LIBNET) -o $(BIN)$@ $^ -l$(LIBNET_DYN)
 
 $(OBJECTS): $(SOURCES)
-	$(CC) -o $@ -c $< $(CFLAGS)
+	$(CC) -I$(LIBNET) -o $@ -c $< $(CFLAGS)
 
 doc:
 	$(DOXYGEN) $(DOXYGEN_FLAGS) $(DOXYGEN_MAIN_CONF) > /dev/null
@@ -41,6 +57,9 @@ doc:
 doc-clean:
 	rm -rf $(DOC_FOLDER)
 
-clean: doc-clean
-	rm -f $(OBJECTS)
+libs-clean:
+	@make clean -C $(LIBNET)
+
+clean: doc-clean libs-clean
+	rm -f $(OBJECTS) $(BIN)client $(BIN)server
 
