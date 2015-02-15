@@ -11,6 +11,10 @@
  * @date 2015-02-09
  */
 
+#include <stdio.h>
+#include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 
 /**

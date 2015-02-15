@@ -13,6 +13,14 @@
  */
 
 
+#include <ctype.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+
 /* SENDER PROTOCOL (client → server):
  *  <message_length : int [4 octet]>
  *  <command_length : int [4 octet]>

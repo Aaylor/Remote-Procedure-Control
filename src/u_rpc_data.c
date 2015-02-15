@@ -1,12 +1,5 @@
 
-#include <ctype.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
-#include "rpc_data.h"
+#include "u_rpc_data.h"
 
 
 /**

@@ -11,5 +11,10 @@
  * @date 2015-02-09
  */
 
+#include "libnet.h"
+
+#include "u_log.h"
+#include "u_rpc_data.h"
+
 
 #endif /* CLIENT_H */

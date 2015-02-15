@@ -3,6 +3,7 @@ UNAME = $(shell uname -s)
 CC=gcc
 CFLAGS=-Wall -pedantic -std=c99 -D _POSIX_C_SOURCE=200112L -Werror -Wextra
 
+
 #=-=-=-=-=-=-=-= RPC Variables =-=-=-=-=-=-=-=-=#
 
 SRC=src/
@@ -11,7 +12,11 @@ BIN=bin/
 SOURCES=$(wildcard $(SRC)*.c)
 OBJECTS=$(SOURCES:.c=.o)
 
-TARGETS=client server
+TARGETS=$(BIN)client $(BIN)server
+
+UTIL_SOURCES=$(wildcard $(SRC)u_*.c)
+UTIL_OBJECTS=$(UTIL_SOURCES:.c=.o)
+UTIL_HEADERS=$(UTIL_SOURCES:.c=.h)
 
 CLIENT_SOURCES=$(wildcard $(SRC)c_*.c)
 CLIENT_OBJECTS=$(CLIENT_SOURCES:.c=.o)
@@ -19,10 +24,20 @@ CLIENT_OBJECTS=$(CLIENT_SOURCES:.c=.o)
 SERVER_SOURCES=$(wildcard $(SRC)s_*.c)
 SERVER_OBJECTS=$(SERVER_SOURCES:.c=.o)
 
-#=-=-=-=-=-= Librairies variables  =-=-=-=-=-=-=#
+
+
+#=-=-=-=-=-= Librairies variables -=-=-=-=-=-=-=#
 
 LIBNET=libs/libnet
-LIBNET_DYN=net
+LIBNET_SRC=$(LIBNET)/src
+NET=net
+
+ifeq ($(UNAME),Darwin)
+	LIBNET_DYN=$(LIBNET)/libnet.dylib
+else
+	LIBNET_DYN=$(LIBNET)/libnet.so
+endif
+
 
 #=-=-=-=-=-=-=-= Documentation =-=-=-=-=-=-=-=-=#
 
@@ -32,24 +47,30 @@ DOXYGEN_MAIN_CONF=doc/rpc.conf
 DOC_FOLDER=doc/rpc
 
 
+#=-=-=-=-=-=-=-=- Dependencies -=-=--=-=-=-=-=-=-=#
 
-.PHONY: all libs doc doc-clean libs-clean clean
+.PHONY: all doc doc-clean libs-clean clean
 
 all: libs $(TARGETS)
 
-libs:
+libs: $(LIBNET_DYN)
+
+$(LIBNET_DYN):
 	@echo "=-=-= making libnet =-=-=-=-=-=-=-=-=-="
 	@make dyn -C $(LIBNET)
 	@echo "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
 
-client: $(CLIENT_OBJECTS)
-	$(CC) -L$(LIBNET) -o $(BIN)$@ $^ -l$(LIBNET_DYN)
+$(BIN)client: $(CLIENT_OBJECTS) $(UTIL_OBJECTS)
+	$(CC) -L$(LIBNET) -o $@ $^ -l$(NET)
 
-server: $(SERVER_OBJECTS)
-	$(CC) -L$(LIBNET) -o $(BIN)$@ $^ -l$(LIBNET_DYN)
+$(BIN)server: $(SERVER_OBJECTS) $(UTIL_OBJECTS)
+	$(CC) -L$(LIBNET) -o $@ $^ -l$(NET)
 
-$(OBJECTS): $(SOURCES)
-	$(CC) -I$(LIBNET) -o $@ -c $< $(CFLAGS)
+$(SRC)client.o: $(UTIL_HEADERS)
+$(SRC)server.o: $(UTIL_HEADERS)
+
+%.o: %.c %.h
+	$(CC) -I$(LIBNET_SRC) -o $@ -c $< $(CFLAGS)
 
 doc:
 	$(DOXYGEN) $(DOXYGEN_FLAGS) $(DOXYGEN_MAIN_CONF) > /dev/null
