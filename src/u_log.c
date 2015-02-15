@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 /**
- * @file log.h
+ * @file u_log.h
  * @brief Implements log file.
  * @author Tortrat-Gentilhomme Nicolas
  * @author Raymond Nicolas

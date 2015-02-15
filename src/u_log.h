@@ -2,7 +2,7 @@
 #define LOG_H
 
 /**
- * @file log.h
+ * @file u_log.h
  * @brief Easy way to write logs.
  * @author Tortrat-Gentilhomme Nicolas
  * @author Raymond Nicolas
@@ -61,3 +61,4 @@ int fwrite_log(FILE *file, const char *msg);
 int dwrite_log(int fd, const char *msg);
 
 #endif /* LOG_H */
+

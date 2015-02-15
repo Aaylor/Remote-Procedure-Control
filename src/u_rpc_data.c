@@ -3,7 +3,7 @@
 
 
 /**
- * @file rpc_data.c
+ * @file u_rpc_data.c
  * @brief Implements serialize and deserialize functions.
  * @author Tortrat-Gentilhomme Nicolas
  * @author Raymond Nicolas
@@ -37,13 +37,18 @@ int create_message(struct message *msg, char *command, char return_type,
             msg->argv[cpt].typ       = argv[cpt].typ;
             msg->argv[cpt].data_size = argv[cpt].data_size;
 
-            msg->argv[cpt].data = malloc(msg->argv[cpt].data_size);
-            if (msg->argv[cpt].data == NULL) {
-                free(msg->command);
-                free(msg->argv);
-                /* FIXME: possible memory leak here */
+            if (argv[cpt].data_size > 0) {
+                msg->argv[cpt].data = malloc(msg->argv[cpt].data_size);
+                if (msg->argv[cpt].data == NULL) {
+                    free(msg->command);
+                    free(msg->argv);
+                    /* FIXME: possible memory leak here */
+                }
+                memcpy(msg->argv[cpt].data, argv[cpt].data,
+                        argv[cpt].data_size);
+            } else {
+                msg->argv[cpt].data = NULL;
             }
-            memcpy(msg->argv[cpt].data, argv[cpt].data, argv[cpt].data_size);
 
             ++cpt;
         }
@@ -70,6 +75,12 @@ void free_message(struct message *msg) {
 }
 
 
+/**
+ * @brief Returns the size of args array according to the protocol.
+ * @param argc The number of argument.
+ * @param args Arguments.
+ * @return the size.
+ */
 int arg_size(int argc, struct rpc_arg *args) {
     int size, cpt;
 
@@ -121,6 +132,32 @@ char *serialize_integer(int i) {
     }
 
     return msg;
+}
+
+int deserialize_integer(int *result, struct rpc_arg *arg) {
+    int  cpt, neg;
+    char *data;
+
+    if (result == NULL || arg == NULL || arg->typ != RPC_TY_INT) {
+        return -1;
+    }
+
+    data    = (char *)arg->data;
+    *result = 0;
+
+    cpt = 0;
+    if (data[0] == '-') {
+        neg = 1;
+        ++cpt;
+    }
+
+    while (cpt < arg->data_size) {
+        *result *= 10;
+        *result += data[cpt] - '0';
+        ++cpt;
+    }
+
+    return 0;
 }
 
 char *serialize_message(struct message *msg) {
@@ -256,48 +293,55 @@ int deserialize_message(struct message *msg, const char *serialized_msg) {
 
     return cpt - msg_length;
 }
-/*
- *
- *int main(void) {
- *    int cpt;
- *    struct message m, answer;
- *    struct rpc_arg *argv;
- *
- *    m.command_length = 10;
- *    m.command        = "abcdefghij";
- *    m.return_type    = RPC_TY_INT;
- *    m.argc           = 2;
- *
- *    argv = malloc(sizeof(struct rpc_arg) * 2);
- *
- *    argv[0].typ = RPC_TY_INT;
- *    argv[0].data_size = 3;
- *    argv[0].data = serialize_integer(123);
- *
- *    argv[1].typ = RPC_TY_STR;
- *    argv[1].data_size = 5;
- *    argv[1].data = "xyza";
- *
- *    m.argv = argv;
- *
- *    char *msg = serialize_message(&m);
- *    deserialize_message(&answer, msg);
- *
- *    printf("m.command_length: %d\n", answer.command_length);
- *    printf("m.command:        %s\n", answer.command);
- *    printf("m.return_type:    %d\n", answer.return_type);
- *    printf("m.argc:           %d\n", answer.argc);
- *
- *    cpt = 0;
- *    while (cpt < answer.argc) {
- *        printf(" m.argv[%d]:      %d\n", cpt, answer.argv[cpt].typ);
- *        printf(" m.argv[%d]:      %d\n", cpt, answer.argv[cpt].data_size);
- *        printf(" m.argv[%d]:      %s\n", cpt, answer.argv[cpt].data);
- *        ++cpt;
- *    }
- *
- *    return EXIT_SUCCESS;
- *}
- *
- */
+
+int main(void) {
+    int cpt;
+    struct message m, answer;
+    struct rpc_arg *argv;
+
+    argv = malloc(sizeof(struct rpc_arg) * 2);
+
+    argv[0].typ = RPC_TY_INT;
+    argv[0].data_size = 3;
+    argv[0].data = serialize_integer(123);
+    free(argv[0].data);
+
+    argv[1].typ = RPC_TY_STR;
+    argv[1].data_size = 5;
+    argv[1].data = "xyza";
+
+    create_message(&m, "abcdefghij", RPC_TY_INT, 2, argv);
+    free(argv);
+
+
+    char *msg = serialize_message(&m);
+    deserialize_message(&answer, msg);
+
+    printf("m.command_length: %d\n", answer.command_length);
+    printf("m.command:        %s\n", answer.command);
+    printf("m.return_type:    %d\n", answer.return_type);
+    printf("m.argc:           %d\n", answer.argc);
+
+    cpt = 0;
+    while (cpt < answer.argc) {
+        printf(" m.argv[%d]:      %d\n", cpt, answer.argv[cpt].typ);
+        printf(" m.argv[%d]:      %d\n", cpt, answer.argv[cpt].data_size);
+
+        if (answer.argv[cpt].typ == RPC_TY_INT) {
+            int result;
+            deserialize_integer(&result, &(answer.argv[cpt]));
+            printf(" m.argv[%d]:      %d\n", cpt, result);
+        } else {
+            printf(" m.argv[%d]:      %s\n", cpt, answer.argv[cpt].data);
+        }
+        ++cpt;
+    }
+
+    free_message(&m);
+    free(msg);
+    free_message(&answer);
+
+    return EXIT_SUCCESS;
+}
+
 

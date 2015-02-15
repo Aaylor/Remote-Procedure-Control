@@ -3,7 +3,7 @@
 
 
 /**
- * @file rpc_data.h
+ * @file u_rpc_data.h
  * @brief Handle data types.
  * @author Tortrat-Gentilhomme Nicolas
  * @author Raymond Nicolas
@@ -145,12 +145,42 @@ struct message {
 };
 
 
+/**
+ * @brief Create the message with given arguments.
+ * Every array/string will be deep copy.
+ * This function allocates memory which has to be freed.
+ * @param msg the message to fill.
+ * @param command the command to send.
+ * @param return_type the return type.
+ * @param argc the number of argument.
+ * @param argv arguments. this function make a deep copy of arguments.
+ * @return 0 if everything works fine
+ */
 int create_message(struct message *msg, char *command,
         char return_type, int argc, struct rpc_arg *argv);
 
+/**
+ * @brief Free the memory used by the given message. (It must be created by the
+ * function `create_message`)
+ * @param msg the message to free.
+ */
 void free_message(struct message *msg);
 
+/**
+ * @brief Serialize an integer as told in the protocol : a character for each
+ * digit.
+ * @param i the number to serialize.
+ * @return the string corresponding to the number serialized.
+ */
 char *serialize_integer(int i);
+
+/**
+ * @brief Deserialize the given arugment to get back the integer store in it.
+ * @param result pointer where to store the result.
+ * @param arg the argument
+ * @return 0 if everything works fine.
+ */
+int deserialize_integer(int *result, struct rpc_arg *arg);
 
 /**
  * @brief Serialize the message to be sent through sockets.
