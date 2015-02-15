@@ -26,12 +26,16 @@
  *  <command_length : int [4 octet]>
  *  <command        : char * [1 octet par charactère]>
  *  <typ            : 1 octet>
+ *  <argc           : int [4 octet]>
  *  <typ1           : 1 octet>
+ *  <lg1            : 1 octet>
  *  <arg1           : {size of arg : dependant of the type}>
  *  <typ2>          ...
+ *  <lg2>           ...
  *  <arg2>          ...
  *  ...
  *  <typN>          ...
+ *  <lgN>           ...
  *  <argN>          ...
  */
 
@@ -94,7 +98,12 @@ struct rpc_arg {
      * @brief The argument type.
      * It could be RPC_TY_VOID, RPC_TY_INT or RPC_TY_STR.
      */
-    int typ : 1;
+    char typ;
+
+    /**
+     * @brief The size of the argument.
+     */
+    char data_size;
 
     /**
      * @brief The argument's data.
@@ -122,7 +131,7 @@ struct message {
     /**
      * @brief The return type.
      */
-    int return_type : 1;
+    char return_type;
 
     /**
      * @brief Number of arguments.
@@ -136,22 +145,12 @@ struct message {
 };
 
 
-/**
- * @brief Fill the message with given arguments.
- * @param msg the message to fill.
- * @param cmd the command to execute.
- * @param return_type the return type.
- * @param ... every arguments. it hshould be write as TYP, arg.
- * @return 0 if it's correct.
- */
-int create_message(struct message *msg, const char *cmd,
-        int return_type, int argc, ...);
+int create_message(struct message *msg, char *command,
+        char return_type, int argc, struct rpc_arg *argv);
 
-/**
- * @brief Frees memory from the message.
- * @param msg The message to free.
- */
 void free_message(struct message *msg);
+
+char *serialize_integer(int i);
 
 /**
  * @brief Serialize the message to be sent through sockets.
