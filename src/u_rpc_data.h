@@ -94,7 +94,7 @@ struct rpc_arg {
      * @brief The argument type.
      * It could be RPC_TY_VOID, RPC_TY_INT or RPC_TY_STR.
      */
-    unsigned int typ;
+    int typ : 1;
 
     /**
      * @brief The argument's data.
@@ -103,22 +103,70 @@ struct rpc_arg {
 
 };
 
-/**
- * @brief Serialize the data before sending it.
- * WARNING: the memory has to be deallocate after usage.
- * @param arg the argument.
- * @return the serialized message.
- */
-char *serialize_data(const struct rpc_arg *arg);
 
 /**
- * @brief Serialize the data before sending it.
- * WARNING: the memory has to be deallocate after usage.
- * @param typ the argument type.
- * @param data the data.
- * @return the serialized message.
+ * @brief Represent a message.
  */
-char *tserialize_data(unsigned int typ, void *data);
+struct message {
+
+    /**
+     * @brief The command length.
+     */
+    int command_length;
+
+    /**
+     * @brief The command to execute.
+     */
+    const char *command;
+
+    /**
+     * @brief The return type.
+     */
+    int return_type : 1;
+
+    /**
+     * @brief Number of arguments.
+     */
+    int argc;
+
+    /**
+     * @brief Arguments to send.
+     */
+    struct rpc_arg *argv;
+};
+
+
+/**
+ * @brief Fill the message with given arguments.
+ * @param msg the message to fill.
+ * @param cmd the command to execute.
+ * @param return_type the return type.
+ * @param ... every arguments. it hshould be write as TYP, arg.
+ * @return 0 if it's correct.
+ */
+int create_message(struct message *msg, const char *cmd, int return_type, ...);
+
+/**
+ * @brief Frees memory from the message.
+ * @param msg The message to free.
+ */
+void free_message(struct message *msg);
+
+/**
+ * @brief Serialize the message to be sent through sockets.
+ * @param msg the message to serialize.
+ * @return the serialized data.
+ */
+char *serialize_message(struct message *msg);
+
+/**
+ * @brief Deserialize data and fill message.
+ * @param msg the message to fill.
+ * @param serialized_msg the serialized data
+ * @return 0 if it's correct.
+ */
+int deserialize_message(struct message *msg, const char *serialized_msg);
+
 
 #endif /* RPC_DATA_H */
 
