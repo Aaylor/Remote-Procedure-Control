@@ -117,7 +117,7 @@ struct message {
     /**
      * @brief The command to execute.
      */
-    const char *command;
+    char *command;
 
     /**
      * @brief The return type.
@@ -144,7 +144,8 @@ struct message {
  * @param ... every arguments. it hshould be write as TYP, arg.
  * @return 0 if it's correct.
  */
-int create_message(struct message *msg, const char *cmd, int return_type, ...);
+int create_message(struct message *msg, const char *cmd,
+        int return_type, int argc, ...);
 
 /**
  * @brief Frees memory from the message.
