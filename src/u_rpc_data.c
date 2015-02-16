@@ -49,6 +49,7 @@ int create_message(struct message *msg, const char *command, char return_type,
                         free(msg->argv);
                         /* FIXME: possible memory leak here. */
                     }
+                    memcpy(msg->argv[cpt].data, argv[cpt].data, sizeof(int));
                     break;
 
                 case RPC_TY_STR:
@@ -106,6 +107,7 @@ int arg_size(int argc, struct rpc_arg *args) {
 
             case RPC_TY_STR:
                 size += 1 + strlen((char *)args[cpt].data);
+                break;
 
             case RPC_TY_INT:
                 memcpy(&tmp, args[cpt].data, sizeof(int));
@@ -250,7 +252,8 @@ char *serialize_message(struct message *msg) {
 }
 
 int deserialize_message(struct message *msg, const char *serialized_msg) {
-    int  msg_length, cpt, i, tmp;
+    int  msg_length, cpt, i;
+    char tmp;
     struct rpc_arg *arg;
 
     cpt = 0;
@@ -305,7 +308,7 @@ int deserialize_message(struct message *msg, const char *serialized_msg) {
                 break;
 
             case RPC_TY_STR:
-                tmp = (int)((char *)arg->data)[0];
+                memcpy(&tmp, serialized_msg + cpt, sizeof(char));
                 cpt += sizeof(char);
 
                 arg->data = malloc(tmp * sizeof(char) + 1);
@@ -316,7 +319,7 @@ int deserialize_message(struct message *msg, const char *serialized_msg) {
                 }
 
                 memcpy(arg->data, serialized_msg + cpt, tmp);
-                ((char *)arg->data)[tmp] = '\0';
+                ((char *)arg->data)[(int)tmp] = '\0';
                 cpt += tmp;
                 break;
 
