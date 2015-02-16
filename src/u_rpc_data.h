@@ -163,18 +163,19 @@ int create_message(struct message *msg, const char *command,
 void free_message(struct message *msg);
 
 /**
- * @brief Serialize an integer as told in the protocol : a character for each
- * digit.
- * @param i the number to serialize.
- * @return the string corresponding to the number serialized.
+ * @brief Serialize an integer into the given buffer.
+ * The buffer has to be size as the number of digits of i + 1.
+ * @param i the number to serialize
+ * @param buf the buffer where to serialize
+ * @return the number of characters written
  */
 int serialize_integer(int i, char *buf);
 
 /**
  * @brief Deserialize the given arugment to get back the integer store in it.
  * @param result pointer where to store the result.
- * @param arg the argument
- * @return 0 if everything works fine.
+ * @param msg the argument
+ * @return the number of character read. -1 if error.
  */
 int deserialize_integer(int *result, const char *msg);
 
@@ -189,7 +190,7 @@ char *serialize_message(struct message *msg);
  * @brief Deserialize data and fill message.
  * @param msg the message to fill.
  * @param serialized_msg the serialized data
- * @return 0 if it's correct.
+ * @return the 
  */
 int deserialize_message(struct message *msg, const char *serialized_msg);
 
