@@ -156,7 +156,7 @@ struct message {
  * @param argv arguments. this function make a deep copy of arguments.
  * @return 0 if everything works fine
  */
-int create_message(struct message *msg, char *command,
+int create_message(struct message *msg, const char *command,
         char return_type, int argc, struct rpc_arg *argv);
 
 

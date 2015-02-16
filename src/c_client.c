@@ -41,6 +41,7 @@ int external_call(const char *cmd, int type, void *ret, ...){
     for(arg = va_arg(ap, void *); arg != NULL; arg = va_arg(ap, void *)){
         args[i].data = arg;
         args[i].typ = va_arg(ap, int);
+        args[i].data_size = data_size(args[i].typ, arg);
         i++;
     }
     va_end(ap);
@@ -48,7 +49,7 @@ int external_call(const char *cmd, int type, void *ret, ...){
     /* Generate the message */
     create_message(&msg, cmd, type, nb_args, args);
 
-    if( (clt = sendCmd(msg)) < 0)
+    if( (clt = sendCmd(&msg)) < 0)
         return -1;
 
     free_message(&msg);
@@ -57,11 +58,34 @@ int external_call(const char *cmd, int type, void *ret, ...){
     return 0;
 }
 
+char data_size(int data_type, void *data){
+    int res = 0, t;
+    char *tmp;
+    switch(data_type){
+        case RPC_TY_VOID:
+            return 0;
+        case RPC_TY_INT:
+            t=10;
+            while(*((int *)data)/t>0){
+                res++;
+                t*=10;
+            }
+            return res;
+        case RPC_TY_STR:
+            tmp = (char*)data;
+            while(tmp++ != '\0')
+                res++;
+            return res;
+        default:
+            return -1;
+    }
+}
+
 int sendCmd(struct message *msg){
     int clt = 0; // Client's socket filedescriptor
     char *serial = serialize_message(msg);
 
-    if( (clt = clt_tcpsock("localhost", 23456, AF_INET))<0 ) {
+    if( (clt = clt_tcpsock("localhost", "23456", AF_INET))<0 ) {
         fprintf(stderr, "Unable to connect");
         return -1;
     }

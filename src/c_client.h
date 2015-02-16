@@ -49,8 +49,9 @@ int external_callv
 /**
  * @brief Calulate the size of a certain *data_type*d *data*.
  * @param data_type The type of the data. It must be RPC_TY_VOID, RPC_TY_INT,
- * RPC_TY_STR
- * @param data The data whose the size must be calculated
+ * RPC_TY_STR.
+ * @param data The data whose the size must be calculated.If the data is of
+ * type RPC_TY_STR. The data string must be ended with a '\0'.
  * @return The data size
  */
 char data_size(int data_type, void *data);
@@ -60,6 +61,7 @@ char data_size(int data_type, void *data);
  * @param msg The message to send
  * @return 0 is the operation is succesfull, -1 else
  */
-int sendCmd(struct message *msg){
+int sendCmd(struct message *msg);
+
 
 #endif /* CLIENT_H */

@@ -12,7 +12,7 @@
  * @date 2015-02-09
  */
 
-int create_message(struct message *msg, char *command, char return_type,
+int create_message(struct message *msg, const char *command, char return_type,
         int argc, struct rpc_arg *argv) {
     int cpt;
 
