@@ -159,6 +159,7 @@ struct message {
 int create_message(struct message *msg, char *command,
         char return_type, int argc, struct rpc_arg *argv);
 
+
 /**
  * @brief Free the memory used by the given message. (It must be created by the
  * function `create_message`)

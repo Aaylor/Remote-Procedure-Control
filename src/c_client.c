@@ -1,5 +1,4 @@
 
-#include <stdlib.h>
 
 #include "c_client.h"
 
@@ -14,10 +13,68 @@
  * @date 2015-02-09
  */
 
+int external_call(const char *cmd, int type, void *ret, ...){
+    /* Variadic variables */
+    int nb_args = 0;
+    va_list ap;
+
+    /* Arguments */
+    int i = 0;
+    void *arg = NULL;
+    struct rpc_arg *args = NULL;
+    struct message msg;
+
+    /* Socket */
+    int clt = 0;
+
+    /* Calculate the numer of arguments */
+    va_start(ap, ret);
+    for(arg = va_arg(ap, void *); arg != NULL; arg = va_arg(ap, void *)){
+        va_arg(ap, int);
+        nb_args++;
+    }
+    va_end(ap);
+
+    /* Generate an argument tab */
+    args = malloc(nb_args * sizeof(struct rpc_arg));
+    va_start(ap, ret);
+    for(arg = va_arg(ap, void *); arg != NULL; arg = va_arg(ap, void *)){
+        args[i].data = arg;
+        args[i].typ = va_arg(ap, int);
+        i++;
+    }
+    va_end(ap);
+
+    /* Generate the message */
+    create_message(&msg, cmd, type, nb_args, args);
+
+    if( (clt = sendCmd(msg)) < 0)
+        return -1;
+
+    free_message(&msg);
+    free(args);
+
+    return 0;
+}
+
+int sendCmd(struct message *msg){
+    int clt = 0; // Client's socket filedescriptor
+    char *serial = serialize_message(msg);
+
+    if( (clt = clt_tcpsock("localhost", 23456, AF_INET))<0 ) {
+        fprintf(stderr, "Unable to connect");
+        return -1;
+    }
+
+    send(clt, (void *)serial, strlen(serial), 0);
+
+    free(serial);
+    return clt;
+}
 
 /**
  * @brief Entry point.
- * @return .
+ * @return 
  */
 int main(void)
 {
