@@ -7,6 +7,7 @@
  * @author Tortrat-Gentilhomme Nicolas
  * @author Raymond Nicolas
  * @author Runarvot Loïc
+ * @author **SAFIR**
  * @version 0.1
  * @date 2015-02-09
  */
@@ -25,7 +26,7 @@
 /**
  * @brief Call a certain function *cmd* that will be executed on the server
  * process. The returned value of the function (of type *type*) will be
- * wroten in the *ret* pointer. The argument of *cmd* and their type must be
+ * written in the *ret* pointer. The argument of *cmd* and their type must be
  * given as the last arguments followed by a NULL pointer.
  *
  * @param cmd The function that must be executed by the server process
@@ -45,5 +46,20 @@ int external_call
 int external_callv
     (const char *cmd, unsigned short argc, struct rpc_arg *argv);
 
+/**
+ * @brief Calulate the size of a certain *data_type*d *data*.
+ * @param data_type The type of the data. It must be RPC_TY_VOID, RPC_TY_INT,
+ * RPC_TY_STR
+ * @param data The data whose the size must be calculated
+ * @return The data size
+ */
+char data_size(int data_type, void *data);
+
+/**
+ * @brief Send a message to the server.
+ * @param msg The message to send
+ * @return 0 is the operation is succesfull, -1 else
+ */
+int sendCmd(struct message *msg){
 
 #endif /* CLIENT_H */
