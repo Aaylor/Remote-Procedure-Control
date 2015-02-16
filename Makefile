@@ -28,7 +28,7 @@ SERVER_OBJECTS=$(SERVER_SOURCES:.c=.o)
 
 #=-=-=-=-=-= Librairies variables -=-=-=-=-=-=-=#
 
-LIBNET=libs/libnet
+LIBNET=lib/libnet
 LIBNET_SRC=$(LIBNET)/src
 NET=net
 
