@@ -12,6 +12,7 @@
  * @date 2015-02-09
  */
 
+
 int create_message(struct message *msg, const char *command, char return_type,
         int argc, struct rpc_arg *argv) {
     int cpt;
@@ -35,19 +36,32 @@ int create_message(struct message *msg, const char *command, char return_type,
         cpt = 0;
         while (cpt < msg->argc) {
             msg->argv[cpt].typ       = argv[cpt].typ;
-            msg->argv[cpt].data_size = argv[cpt].data_size;
 
-            if (argv[cpt].data_size > 0) {
-                msg->argv[cpt].data = malloc(msg->argv[cpt].data_size);
-                if (msg->argv[cpt].data == NULL) {
-                    free(msg->command);
-                    free(msg->argv);
-                    /* FIXME: possible memory leak here */
-                }
-                memcpy(msg->argv[cpt].data, argv[cpt].data,
-                        argv[cpt].data_size);
-            } else {
-                msg->argv[cpt].data = NULL;
+            switch (argv[cpt].typ) {
+                case RPC_TY_VOID:
+                    msg->argv[cpt].data = NULL;
+                    break;
+
+                case RPC_TY_INT:
+                    msg->argv[cpt].data = malloc(sizeof(int));
+                    if (msg->argv[cpt].data == NULL) {
+                        free(msg->command);
+                        free(msg->argv);
+                        /* FIXME: possible memory leak here. */
+                    }
+                    break;
+
+                case RPC_TY_STR:
+                    msg->argv[cpt].data = strdup((char *)argv[cpt].data);
+                    if (msg->argv[cpt].data == NULL) {
+                        free(msg->command);
+                        free(msg->argv);
+                        /* FIXME: possible memory leak here. */
+                    }
+                    break;
+
+                default:
+                    break;
             }
 
             ++cpt;
@@ -58,7 +72,6 @@ int create_message(struct message *msg, const char *command, char return_type,
 
     return 0;
 }
-
 
 void free_message(struct message *msg) {
     int cpt;
@@ -74,7 +87,6 @@ void free_message(struct message *msg) {
     free(msg->argv);
 }
 
-
 /**
  * @brief Returns the size of args array according to the protocol.
  * @param argc The number of argument.
@@ -82,20 +94,28 @@ void free_message(struct message *msg) {
  * @return the size.
  */
 int arg_size(int argc, struct rpc_arg *args) {
-    int size, cpt;
+    int size, cpt, tmp;
 
     size = cpt = 0;
-    while (cpt < argc)
-    {
-        switch(args[cpt].typ)
-        {
+    while (cpt < argc) {
+
+        switch(args[cpt].typ) {
             case RPC_TY_VOID:
-                size += sizeof(char);
+                size += 1;
                 break;
+
             case RPC_TY_STR:
+                size += 1 + strlen((char *)args[cpt].data);
+
             case RPC_TY_INT:
-                size += 2 * sizeof(char) + args[cpt].data_size;
+                memcpy(&tmp, args[cpt].data, sizeof(int));
+                while(tmp > 0) {
+                    tmp /= 10;
+                    ++size;
+                }
+                ++size;
                 break;
+
             default: /* FIXME: how to handle ? */
                 break;
         }
@@ -106,10 +126,11 @@ int arg_size(int argc, struct rpc_arg *args) {
     return size;
 }
 
-char *serialize_integer(int i) {
+
+int serialize_integer(int i, char *buf) {
+    /* FIXME: handle neg integers */
     size_t size;
-    char   *msg;
-    int    tmp;
+    int    tmp, isize;
 
     size = 0;
     tmp  = i;
@@ -118,50 +139,51 @@ char *serialize_integer(int i) {
         tmp /= 10;
     }
 
-    msg = malloc(size);
-    if (msg == NULL) {
-        return NULL;
-    }
-    --size;
-
-    tmp  = i;
+    isize = size;
+    tmp   = i;
     while (tmp > 0) {
-        msg[size] = '0' + (tmp % 10);
+        buf[size] = '0' + (tmp % 10);
         tmp /= 10;
         --size;
     }
 
-    return msg;
+    buf[0] = (char)isize;
+
+    return isize + 1;
 }
 
-int deserialize_integer(int *result, struct rpc_arg *arg) {
-    int  cpt, neg;
-    char *data;
+int deserialize_integer(int *result, const char *msg) {
+    int cpt, neg, size;
+    int res;
 
-    if (result == NULL || arg == NULL || arg->typ != RPC_TY_INT) {
+
+    if (result == NULL || msg == NULL) {
         return -1;
     }
 
-    data    = (char *)arg->data;
-    *result = 0;
+    res = 0;
 
-    cpt = 0;
-    if (data[0] == '-') {
+    size = (int)msg[0] + 1;
+
+    cpt  = 1;
+    if (msg[cpt] == '-') {
         neg = 1;
         ++cpt;
     }
 
-    while (cpt < arg->data_size) {
-        *result *= 10;
-        *result += data[cpt] - '0';
+    while (cpt < size) {
+        res *= 10;
+        res += msg[cpt] - '0';
         ++cpt;
     }
 
-    return 0;
+    memcpy(result, &res, sizeof(int));
+
+    return cpt;
 }
 
 char *serialize_message(struct message *msg) {
-    int cpt, i, size;
+    int cpt, i, size, tmp;
     char *serialized_msg;
     struct rpc_arg *arg;
 
@@ -202,12 +224,18 @@ char *serialize_message(struct message *msg) {
                 break;
 
             case RPC_TY_INT:
+                cpt += serialize_integer(*(int *)arg->data,
+                        serialized_msg + cpt);
+                break;
+
+
             case RPC_TY_STR:
-                memcpy(serialized_msg + cpt, &(arg->data_size), sizeof(char));
+                tmp = strlen((char *)arg->data);
+                memcpy(serialized_msg + cpt, &tmp, sizeof(char));
                 cpt += sizeof(char);
 
-                memcpy(serialized_msg + cpt, arg->data, arg->data_size);
-                cpt += arg->data_size;
+                memcpy(serialized_msg + cpt, arg->data, tmp);
+                cpt += tmp;
                 break;
 
             default:
@@ -222,7 +250,7 @@ char *serialize_message(struct message *msg) {
 }
 
 int deserialize_message(struct message *msg, const char *serialized_msg) {
-    int msg_length, cpt, i;
+    int  msg_length, cpt, i, tmp;
     struct rpc_arg *arg;
 
     cpt = 0;
@@ -262,24 +290,34 @@ int deserialize_message(struct message *msg, const char *serialized_msg) {
 
         switch (arg->typ) {
             case RPC_TY_VOID:
-                arg->data_size = 0;
-                arg->data      = NULL;
+                arg->data = NULL;
                 break;
 
             case RPC_TY_INT:
-            case RPC_TY_STR:
-                memcpy(&(arg->data_size), serialized_msg + cpt, sizeof(char));
-                cpt += sizeof(char);
-
-                arg->data = malloc(arg->data_size * sizeof(char));
+                arg->data = malloc(sizeof(int));
                 if (arg->data == NULL) {
                     free(msg->command);
                     free(msg->argv);
                     return -1;
                 }
 
-                memcpy(arg->data, serialized_msg + cpt, arg->data_size);
-                cpt += arg->data_size;
+                cpt += deserialize_integer(arg->data, serialized_msg + cpt);
+                break;
+
+            case RPC_TY_STR:
+                tmp = (int)((char *)arg->data)[0];
+                cpt += sizeof(char);
+
+                arg->data = malloc(tmp * sizeof(char) + 1);
+                if (arg->data == NULL) {
+                    free(msg->command);
+                    free(msg->argv);
+                    return -1;
+                }
+
+                memcpy(arg->data, serialized_msg + cpt, tmp);
+                ((char *)arg->data)[tmp] = '\0';
+                cpt += tmp;
                 break;
 
             default:
@@ -294,54 +332,50 @@ int deserialize_message(struct message *msg, const char *serialized_msg) {
     return cpt - msg_length;
 }
 
-/*int main(void) {*/
-    /*int cpt;*/
-    /*struct message m, answer;*/
-    /*struct rpc_arg *argv;*/
+int main(void) {
+    int cpt, i;
+    struct message m, answer;
+    struct rpc_arg *argv;
 
-    /*argv = malloc(sizeof(struct rpc_arg) * 2);*/
+    argv = malloc(sizeof(struct rpc_arg) * 2);
 
-    /*argv[0].typ = RPC_TY_INT;*/
-    /*argv[0].data_size = 3;*/
-    /*argv[0].data = serialize_integer(123);*/
-    /*free(argv[0].data);*/
+    i = 123;
+    argv[0].typ = RPC_TY_INT;
+    argv[0].data = &i;
 
-    /*argv[1].typ = RPC_TY_STR;*/
-    /*argv[1].data_size = 5;*/
-    /*argv[1].data = "xyza";*/
+    argv[1].typ = RPC_TY_STR;
+    argv[1].data = "xyza";
 
-    /*create_message(&m, "abcdefghij", RPC_TY_INT, 2, argv);*/
-    /*free(argv);*/
+    create_message(&m, "abcdefghij", RPC_TY_INT, 2, argv);
+    free(argv);
 
 
-    /*char *msg = serialize_message(&m);*/
-    /*deserialize_message(&answer, msg);*/
+    char *msg = serialize_message(&m);
+    deserialize_message(&answer, msg);
 
-    /*printf("m.command_length: %d\n", answer.command_length);*/
-    /*printf("m.command:        %s\n", answer.command);*/
-    /*printf("m.return_type:    %d\n", answer.return_type);*/
-    /*printf("m.argc:           %d\n", answer.argc);*/
+    printf("m.command_length: %d\n", answer.command_length);
+    printf("m.command:        %s\n", answer.command);
+    printf("m.return_type:    %d\n", answer.return_type);
+    printf("m.argc:           %d\n", answer.argc);
 
-    /*cpt = 0;*/
-    /*while (cpt < answer.argc) {*/
-        /*printf(" m.argv[%d]:      %d\n", cpt, answer.argv[cpt].typ);*/
-        /*printf(" m.argv[%d]:      %d\n", cpt, answer.argv[cpt].data_size);*/
+    cpt = 0;
+    while (cpt < answer.argc) {
+        printf(" m.argv[%d]:      %d\n", cpt, answer.argv[cpt].typ);
 
-        /*if (answer.argv[cpt].typ == RPC_TY_INT) {*/
-            /*int result;*/
-            /*deserialize_integer(&result, &(answer.argv[cpt]));*/
-            /*printf(" m.argv[%d]:      %d\n", cpt, result);*/
-        /*} else {*/
-            /*printf(" m.argv[%d]:      %s\n", cpt, answer.argv[cpt].data);*/
-        /*}*/
-        /*++cpt;*/
-    /*}*/
+        if (answer.argv[cpt].typ == RPC_TY_INT) {
+            printf(" m.argv[%d]:      %d\n", cpt, *(int *)answer.argv[cpt].data);
+        } else {
+            printf(" m.argv[%d]:      %s\n", cpt, (char *)answer.argv[cpt].data);
+        }
+        ++cpt;
+    }
 
-    /*free_message(&m);*/
-    /*free(msg);*/
-    /*free_message(&answer);*/
+    free(msg);
+    free_message(&m);
+    free_message(&answer);
 
-    /*return EXIT_SUCCESS;*/
-/*}*/
+    return EXIT_SUCCESS;
+}
+
 
 

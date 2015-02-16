@@ -101,11 +101,6 @@ struct rpc_arg {
     char typ;
 
     /**
-     * @brief The size of the argument.
-     */
-    char data_size;
-
-    /**
      * @brief The argument's data.
      */
     void *data;
@@ -173,7 +168,7 @@ void free_message(struct message *msg);
  * @param i the number to serialize.
  * @return the string corresponding to the number serialized.
  */
-char *serialize_integer(int i);
+int serialize_integer(int i, char *buf);
 
 /**
  * @brief Deserialize the given arugment to get back the integer store in it.
@@ -181,7 +176,7 @@ char *serialize_integer(int i);
  * @param arg the argument
  * @return 0 if everything works fine.
  */
-int deserialize_integer(int *result, struct rpc_arg *arg);
+int deserialize_integer(int *result, const char *msg);
 
 /**
  * @brief Serialize the message to be sent through sockets.
