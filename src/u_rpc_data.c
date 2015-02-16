@@ -294,54 +294,54 @@ int deserialize_message(struct message *msg, const char *serialized_msg) {
     return cpt - msg_length;
 }
 
-int main(void) {
-    int cpt;
-    struct message m, answer;
-    struct rpc_arg *argv;
+/*int main(void) {*/
+    /*int cpt;*/
+    /*struct message m, answer;*/
+    /*struct rpc_arg *argv;*/
 
-    argv = malloc(sizeof(struct rpc_arg) * 2);
+    /*argv = malloc(sizeof(struct rpc_arg) * 2);*/
 
-    argv[0].typ = RPC_TY_INT;
-    argv[0].data_size = 3;
-    argv[0].data = serialize_integer(123);
-    free(argv[0].data);
+    /*argv[0].typ = RPC_TY_INT;*/
+    /*argv[0].data_size = 3;*/
+    /*argv[0].data = serialize_integer(123);*/
+    /*free(argv[0].data);*/
 
-    argv[1].typ = RPC_TY_STR;
-    argv[1].data_size = 5;
-    argv[1].data = "xyza";
+    /*argv[1].typ = RPC_TY_STR;*/
+    /*argv[1].data_size = 5;*/
+    /*argv[1].data = "xyza";*/
 
-    create_message(&m, "abcdefghij", RPC_TY_INT, 2, argv);
-    free(argv);
+    /*create_message(&m, "abcdefghij", RPC_TY_INT, 2, argv);*/
+    /*free(argv);*/
 
 
-    char *msg = serialize_message(&m);
-    deserialize_message(&answer, msg);
+    /*char *msg = serialize_message(&m);*/
+    /*deserialize_message(&answer, msg);*/
 
-    printf("m.command_length: %d\n", answer.command_length);
-    printf("m.command:        %s\n", answer.command);
-    printf("m.return_type:    %d\n", answer.return_type);
-    printf("m.argc:           %d\n", answer.argc);
+    /*printf("m.command_length: %d\n", answer.command_length);*/
+    /*printf("m.command:        %s\n", answer.command);*/
+    /*printf("m.return_type:    %d\n", answer.return_type);*/
+    /*printf("m.argc:           %d\n", answer.argc);*/
 
-    cpt = 0;
-    while (cpt < answer.argc) {
-        printf(" m.argv[%d]:      %d\n", cpt, answer.argv[cpt].typ);
-        printf(" m.argv[%d]:      %d\n", cpt, answer.argv[cpt].data_size);
+    /*cpt = 0;*/
+    /*while (cpt < answer.argc) {*/
+        /*printf(" m.argv[%d]:      %d\n", cpt, answer.argv[cpt].typ);*/
+        /*printf(" m.argv[%d]:      %d\n", cpt, answer.argv[cpt].data_size);*/
 
-        if (answer.argv[cpt].typ == RPC_TY_INT) {
-            int result;
-            deserialize_integer(&result, &(answer.argv[cpt]));
-            printf(" m.argv[%d]:      %d\n", cpt, result);
-        } else {
-            printf(" m.argv[%d]:      %s\n", cpt, answer.argv[cpt].data);
-        }
-        ++cpt;
-    }
+        /*if (answer.argv[cpt].typ == RPC_TY_INT) {*/
+            /*int result;*/
+            /*deserialize_integer(&result, &(answer.argv[cpt]));*/
+            /*printf(" m.argv[%d]:      %d\n", cpt, result);*/
+        /*} else {*/
+            /*printf(" m.argv[%d]:      %s\n", cpt, answer.argv[cpt].data);*/
+        /*}*/
+        /*++cpt;*/
+    /*}*/
 
-    free_message(&m);
-    free(msg);
-    free_message(&answer);
+    /*free_message(&m);*/
+    /*free(msg);*/
+    /*free_message(&answer);*/
 
-    return EXIT_SUCCESS;
-}
+    /*return EXIT_SUCCESS;*/
+/*}*/
 
 
