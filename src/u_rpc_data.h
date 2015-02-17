@@ -20,6 +20,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "u_log.h"
+
 
 /* SENDER PROTOCOL (client → server):
  *  <message_length : int [4 octet]>
@@ -195,8 +197,19 @@ char *serialize_message(struct message *msg);
 int deserialize_message(struct message *msg, const char *serialized_msg);
 
 #ifdef DEBUG
+
+/**
+ * @brief Log the message into error output.
+ * @param msg the message.
+ */
 void __debug_display_message(struct message *msg);
+
+/**
+ * @brief Log the serialized message into error output.
+ * @param serialized_msg the serialized message.
+ */
 void __debug_display_serialized_message(const char *serialized_msg);
+
 #endif
 
 
