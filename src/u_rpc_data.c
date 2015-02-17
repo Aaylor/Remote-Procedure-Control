@@ -335,3 +335,62 @@ int deserialize_message(struct message *msg, const char *serialized_msg) {
     return cpt - msg_length;
 }
 
+
+#ifdef DEBUG
+
+void __debug_display_message(struct message *msg) {
+    int cpt, tmp;
+
+    printf("== DEBUG: display_message ==\n");
+    printf("%-20s: %d\n", "command_length", msg->command_length);
+    printf("%-20s: %s\n", "command", msg->command);
+    printf("%-20s: %d\n", "return_type", msg->return_type);
+    printf("%-20s: %d\n", "argc", msg->argc);
+
+    cpt = 0;
+    while (cpt < msg-> argc) {
+        printf("  argv[%d]: %d\n", cpt, msg->argv[cpt].typ);
+
+        switch(msg->argv[cpt].typ) {
+            case RPC_TY_VOID:
+                printf("  argv[%d]: %s\n", cpt, "NULL");
+                break;
+
+            case RPC_TY_INT:
+                printf("  argv[%d]: %d\n", cpt, *(int *)msg->argv[cpt].data);
+                break;
+
+            case RPC_TY_STR:
+                printf("  argv[%d]: %s\n", cpt, (char *)msg->argv[cpt].data);
+                break;
+
+            default:
+                printf("  argv[%d]: %s\n", cpt, "<< INTERNAL ERROR >>");
+                break;
+        }
+
+        ++cpt;
+    }
+    printf("%-20%s: %d\n");
+    printf("%-20%s: %d\n");
+}
+
+void __debug_display_serialized_message(const char *serialized_msg) {
+    int cpt, message_length;
+    const char *msg;
+
+    memcpy(&message_length, serialized_msg, sizeof(int));
+    printf("== DEBUG: display serialized message ==\n");
+    printf("size: %d\n", message_length);
+
+    cpt = 0;
+    msg = serialized_msg + sizeof(int);
+    while (cpt < message_length) {
+        printf("%c", msg[cpt]);
+        ++cpt;
+    }
+    printf("\n");
+}
+
+#endif
+

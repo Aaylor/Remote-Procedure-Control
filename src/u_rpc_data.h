@@ -194,6 +194,11 @@ char *serialize_message(struct message *msg);
  */
 int deserialize_message(struct message *msg, const char *serialized_msg);
 
+#ifdef DEBUG
+void __debug_display_message(struct message *msg);
+void __debug_display_serialized_message(const char *serialized_msg);
+#endif
+
 
 #endif /* RPC_DATA_H */
 

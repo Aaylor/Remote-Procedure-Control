@@ -1,8 +1,13 @@
 UNAME = $(shell uname -s)
 
 CC=gcc
-CFLAGS=-Wall -pedantic -std=c99 -D _POSIX_C_SOURCE=200112L -Werror -Wextra
 
+ifeq ($(DEBUG),1)
+	CFLAGS=-Wall -pedantic -std=c99 -D _POSIX_C_SOURCE=200112L -Werror -Wextra \
+		   -D DEBUGLOG
+else
+	CFLAGS=-Wall -pedantic -std=c99 -D _POSIX_C_SOURCE=200112L -Werror -Wextra
+endif
 
 #=-=-=-=-=-=-=-= RPC Variables =-=-=-=-=-=-=-=-=#
 
