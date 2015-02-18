@@ -28,6 +28,28 @@ typedef int   (*int_ptr)();
  */
 typedef char *(*str_ptr)();
 
+/**
+ * @brief Union that contains different pointer to function, according to
+ * their return type.
+ */
+union fun_ptr_u {
+
+    /**
+     * @brief The `void` return function.
+     */
+    void_ptr void_fun;
+
+    /**
+     * @brief The `int` return function.
+     */
+    int_ptr  int_fun;
+
+    /**
+     * @brief The `str` return function.
+     */
+    str_ptr  str_fun;
+};
+
 
 /**
  * @brief Represents a function type containings every information to
@@ -51,29 +73,11 @@ struct function_t {
     char argv[127];
 
     /**
-     * @brief Union that contains different pointer to function, according to
-     * their return type.
+     * @brief The pointer to function.
      */
-    union {
-
-        /**
-         * @brief The `void` return function.
-         */
-        void_ptr void_fun;
-
-        /**
-         * @brief The `int` return function.
-         */
-        int_ptr  int_fun;
-
-        /**
-         * @brief The `str` return function.
-         */
-        str_ptr  str_fun;
-    } fun_ptr;
+    union fun_ptr_u fun_ptr;
 
 };
-
 
 /**
  * @brief Map a function type to its name.
@@ -114,6 +118,14 @@ struct memory {
     struct function_mapper fmap[256];
 
 };
+
+void create_function(struct function_mapper *mapper, const char *name,
+        char return_type, union fun_ptr_u funptr, int argc, ...);
+
+void add_function(struct memory *memory, struct function_mapper mapper);
+
+void remove_function(struct memory *memory, const char *fun_name);
+
 
 #endif /* S_MAPPER_H */
 
