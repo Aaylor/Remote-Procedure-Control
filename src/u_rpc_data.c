@@ -135,20 +135,30 @@ int arg_size(int argc, struct rpc_arg *args) {
 
 
 int serialize_integer(int i, char *buf) {
-    /* FIXME: handle neg integers */
     size_t size;
-    int    tmp, isize;
+    int    tmp, isize, neg;
+
+    neg = 0;
+    if (i < 0) {
+        neg = 1;
+        i   = -i;
+    }
 
     size = 0;
     tmp  = i;
-    while (tmp > 0) {
+    while (tmp != 0) {
         ++size;
         tmp /= 10;
     }
 
+    if (neg == 1) {
+        buf[1] = '-';
+        ++size;
+    }
+
     isize = size;
     tmp   = i;
-    while (tmp > 0) {
+    while (tmp != 0) {
         buf[size] = '0' + (tmp % 10);
         tmp /= 10;
         --size;
