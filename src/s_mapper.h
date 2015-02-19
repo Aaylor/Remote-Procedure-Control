@@ -11,7 +11,23 @@
  * @date 2015-02-17
  */
 
+
+
+#include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
+
+#include "u_rpc_data.h"
+
+
+
+#define FUNCTION_NAME_LENGTH 255
+
+#define MAX_FUNCTIONS        256
+
+#define MAX_PARAMETERS       127
+
+
 
 /**
  * @brief Pointer to function that returns void.
@@ -70,7 +86,7 @@ struct function_t {
     /**
      * @brief Type of each parameter (max 127 parameters).
      */
-    char argv[127];
+    char argv[MAX_PARAMETERS];
 
     /**
      * @brief The pointer to function.
@@ -92,12 +108,12 @@ struct function_mapper {
     /**
      * @brief The function's name.
      */
-    const char name[256];
+    char name[FUNCTION_NAME_LENGTH + 1];
 
     /**
      * @brief The function itself, containing types and its pointer.
      */
-    const struct function_t fun;
+    struct function_t fun;
 
 };
 
@@ -115,16 +131,30 @@ struct memory {
     /**
      * @brief Array containing every functions.
      */
-    struct function_mapper fmap[256];
+    struct function_mapper fmap[MAX_FUNCTIONS];
 
-};
+} function_memory;
 
-void create_function(struct function_mapper *mapper, const char *name,
+
+/**
+ * @brief Fill the mapper with every given informations.
+ * @param mapper The mapper to fill.
+ * @param name The function name.
+ * @param return_type The returned type of the function.
+ * @param funptr The pointer to the function
+ * @param argc The number of parameters.
+ * @param ... All the parameters.
+ * @return 
+ */
+int create_function(struct function_mapper *mapper, const char *name,
         char return_type, union fun_ptr_u funptr, int argc, ...);
 
+/**
+ * @brief Add the function to the given memory.
+ * @param memory The memory.
+ * @param mapper The function mapper.
+ */
 void add_function(struct memory *memory, struct function_mapper mapper);
-
-void remove_function(struct memory *memory, const char *fun_name);
 
 
 #endif /* S_MAPPER_H */
