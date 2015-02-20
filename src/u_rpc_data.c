@@ -13,9 +13,18 @@
  */
 
 
+int type_exists(char type) {
+    return type >= RPC_TY_VOID && type <= RPC_TY_STR;
+}
+
+
 int create_message(struct message *msg, const char *command, char return_type,
         int argc, struct rpc_arg *argv) {
     int cpt;
+
+    if (msg == NULL || command == NULL || !type_exists(return_type)) {
+        return -1;
+    }
 
     msg->command_length = strlen(command);
     msg->command = strdup(command);
@@ -27,6 +36,11 @@ int create_message(struct message *msg, const char *command, char return_type,
     msg->argc = argc;
 
     if (argc > 0) {
+        if (argv == NULL) {
+            free(msg->command);
+            return -1;
+        }
+
         msg->argv = malloc(sizeof(struct rpc_arg) * msg->argc);
         if (msg->argv == NULL) {
             free(msg->command);
@@ -102,6 +116,10 @@ void free_message(struct message *msg) {
 int arg_size(int argc, struct rpc_arg *args) {
     int size, cpt, tmp;
 
+    if (args == NULL) {
+        return -1;
+    }
+
     size = cpt = 0;
     while (cpt < argc) {
 
@@ -173,11 +191,6 @@ int deserialize_integer(int *result, const char *msg) {
     int cpt, neg, size;
     int res;
 
-
-    if (result == NULL || msg == NULL) {
-        return -1;
-    }
-
     res = 0;
 
     size = (int)msg[0] + 1;
@@ -203,6 +216,10 @@ char *serialize_message(struct message *msg) {
     int cpt, i, size, tmp;
     char *serialized_msg;
     struct rpc_arg *arg;
+
+    if (msg == NULL) {
+        return NULL;
+    }
 
     size = 2 * sizeof(int) + msg->command_length + 1 + msg->argc
         + arg_size(msg->argc, msg->argv);
@@ -277,8 +294,11 @@ int deserialize_message(struct message *msg, const char *serialized_msg) {
     char tmp;
     struct rpc_arg *arg;
 
-    cpt = 0;
+    if (msg == NULL || serialized_msg == NULL) {
+        return -1;
+    }
 
+    cpt = 0;
     memcpy(&msg_length, serialized_msg, sizeof(int));
     cpt += sizeof(int);
 
@@ -369,6 +389,12 @@ void __debug_display_message(struct message *msg) {
     int cpt;
 
     fprintf(stderr, "== DEBUG: display_message ==\n");
+
+    if (msg == NULL) {
+        fprintf(stderr, "msg is NULL.\n");
+        return;
+    }
+
     fprintf(stderr, "%-20s: %d\n", "command_length", msg->command_length);
     fprintf(stderr, "%-20s: %s\n", "command", msg->command);
     fprintf(stderr, "%-20s: %d\n", "return_type", msg->return_type);
@@ -406,14 +432,20 @@ void __debug_display_serialized_message(const char *serialized_msg) {
     int cpt, message_length;
     const char *msg;
 
-    memcpy(&message_length, serialized_msg, sizeof(int));
     fprintf(stderr, "== DEBUG: display serialized message ==\n");
+
+    if (serialized_msg == NULL) {
+        fprintf(stderr, "serialized_msg is NULL.\n");
+        return;
+    }
+
+    memcpy(&message_length, serialized_msg, sizeof(int));
     fprintf(stderr, "size: %d\n", message_length);
 
     cpt = 0;
     msg = serialized_msg + sizeof(int);
     while (cpt < message_length) {
-        fprintf(stderr, "%c", msg[cpt]);
+        fprintf(stderr, "%d ", msg[cpt]);
         ++cpt;
     }
     fprintf(stderr, "\n");

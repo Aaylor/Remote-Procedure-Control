@@ -143,6 +143,13 @@ struct message {
 
 
 /**
+ * @brief Check if the given type exists into the protocol.
+ * @param type the type to check
+ * @return != 0 if it's exists
+ */
+int type_exists(char type);
+
+/**
  * @brief Create the message with given arguments.
  * Every array/string will be deep copy.
  * This function allocates memory which has to be freed.
