@@ -48,7 +48,7 @@ typedef char *(*str_ptr)();
  * @brief Union that contains different pointer to function, according to
  * their return type.
  */
-union fun_ptr_u {
+typedef union __fun_ptr {
 
     /**
      * @brief The `void` return function.
@@ -64,7 +64,8 @@ union fun_ptr_u {
      * @brief The `str` return function.
      */
     str_ptr  str_fun;
-};
+
+} fun_ptr_u;
 
 
 /**
@@ -91,7 +92,7 @@ struct function_t {
     /**
      * @brief The pointer to function.
      */
-    union fun_ptr_u fun_ptr;
+    fun_ptr_u fun_ptr;
 
 };
 
@@ -144,17 +145,47 @@ struct memory {
  * @param funptr The pointer to the function
  * @param argc The number of parameters.
  * @param ... All the parameters.
- * @return 
+ * @return 0 if everything is ok.
  */
 int create_function(struct function_mapper *mapper, const char *name,
-        char return_type, union fun_ptr_u funptr, int argc, ...);
+        char return_type, fun_ptr_u funptr, int argc, ...);
 
 /**
  * @brief Add the function to the given memory.
  * @param memory The memory.
  * @param mapper The function mapper.
+ * @return -1 if the given memory is set to NULL.
  */
-void add_function(struct memory *memory, struct function_mapper mapper);
+int add_function(struct memory *memory, struct function_mapper mapper);
+
+/**
+ * @brief Check if the function exists into the given memory.
+ * @param memory The memory.
+ * @param fun_name The function name to search.
+ * @return 1 if the function exist, 0 if not, -1 if the given memory is NULL.
+ */
+int exist_function(struct memory *memory, const char *fun_name);
+
+/**
+ * @brief Return the function mapper with the given name.
+ * @param memory The memory.
+ * @param fun_name The function name to find.
+ * @return NULL if it's not exists OR if memory is NULL.
+ */
+struct function_mapper *get_function(struct memory *memory,
+        const char *fun_name);
+
+
+
+#ifdef DEBUG
+
+void __print_memory_state(struct memory *memory);
+
+void __print_function_mapper_state(struct function_mapper *mapper);
+
+void __print_function_type_state(struct function_t *ft);
+
+#endif
 
 
 #endif /* S_MAPPER_H */
