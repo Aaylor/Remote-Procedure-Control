@@ -16,7 +16,6 @@ int create_function(struct function_mapper *mapper, const char *name,
         return -2;
     }
 
-    /* FIXME: check if return_type exists */
     if (!type_exists(return_type)) {
         return -3;
     }
