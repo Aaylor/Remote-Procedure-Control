@@ -22,6 +22,7 @@ TARGETS=$(BIN)client $(BIN)server
 UTIL_SOURCES=$(wildcard $(SRC)u_*.c)
 UTIL_OBJECTS=$(UTIL_SOURCES:.c=.o)
 UTIL_HEADERS=$(UTIL_SOURCES:.c=.h)
+UTIL_UNIT_TEST=tests/check_utils
 
 CLIENT_SOURCES=$(wildcard $(SRC)c_*.c)
 CLIENT_OBJECTS=$(CLIENT_SOURCES:.c=.o)
@@ -74,6 +75,14 @@ $(BIN)server: $(SERVER_OBJECTS) $(UTIL_OBJECTS)
 $(SRC)client.o: $(UTIL_HEADERS)
 $(SRC)server.o: $(UTIL_HEADERS)
 
+tests: $(UTIL_OBJECTS)
+	$(CC) $(UTIL_UNIT_TEST).c -o $(UTIL_UNIT_TEST).utest $(UTIL_OBJECTS) -Isrc -Llib -lcheck
+	@for t in tests/*.utest; do						\
+		echo "\n~~~ $$t ~~~\n";						\
+		./$$t;										\
+		echo "\n~~~~~~~~~~~~~~~~~~\n";				\
+	done
+
 %.o: %.c %.h
 	$(CC) -I$(LIBNET_SRC) -o $@ -c $< $(CFLAGS)
 
@@ -87,5 +96,5 @@ libs-clean:
 	@make clean -C $(LIBNET)
 
 clean: doc-clean libs-clean
-	rm -f $(OBJECTS) $(BIN)client $(BIN)server
+	rm -f $(OBJECTS) $(BIN)client $(BIN)server tests/*.utest
 
