@@ -471,38 +471,3 @@ void __debug_display_serialized_message(const char *serialized_msg) {
 
 #endif
 
-/*
- *int main(void)
- *{
- *    int i, tmp;
- *    char *serialized;
- *    struct message msg;
- *    struct rpc_arg *argv;
- *
- *    argv = malloc(sizeof(struct rpc_arg) * 3);
- *
- *    char *c = "message";
- *    argv[0].typ     = RPC_TY_STR;
- *    argv[0].data    = strdup(c);
- *
- *    i = 42;
- *    argv[1].typ  = RPC_TY_INT;
- *    argv[1].data = malloc(sizeof(int));
- *    memcpy(argv[1].data, &i, sizeof(int));
- *
- *    i = 24;
- *    argv[2].typ  = RPC_TY_INT;
- *    argv[2].data = malloc(sizeof(int));
- *    memcpy(argv[2].data, &i, sizeof(int));
- *
- *    create_message(&msg, "func_bis", RPC_TY_INT, 3, argv);
- *    serialized = serialize_message(&msg);
- *
- *    tmp = deserialize_message(&msg, serialized + sizeof(int));
- *    free(serialized);
- *
- *    return EXIT_SUCCESS;
- *}
- *
- */
-

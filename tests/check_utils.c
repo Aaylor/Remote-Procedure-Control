@@ -248,7 +248,24 @@ Suite *rpc_data_suite(void) {
 
 
 
+/*
+ *
+ *  RUNNING TEST ON U_RPC_DATA
+ *
+ *
+ */
 
+Suite *log_suite(void) {
+    Suite *s;
+    TCase *t;
+
+    s = suite_create("Log");
+    t = tcase_create("Core");
+
+    suite_add_tcase(s, t);
+
+    return s;
+}
 
 
 
@@ -267,6 +284,14 @@ int main(void)
     number_failed += srunner_ntests_failed(sr);
     srunner_free(sr);
 
+    printf("\n");
+
+    /* LOG */
+    s  = log_suite();
+    sr = srunner_create(s);
+    srunner_run_all(sr, CK_VERBOSE);
+    number_failed += srunner_ntests_failed(sr);
+    srunner_free(sr);
 
     return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
