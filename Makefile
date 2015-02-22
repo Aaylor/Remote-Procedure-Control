@@ -55,7 +55,7 @@ DOC_FOLDER=doc/rpc
 
 #=-=-=-=-=-=-=-=- Dependencies -=-=--=-=-=-=-=-=-=#
 
-.PHONY: all doc doc-clean libs-clean clean
+.PHONY: all doc doc-clean libs-clean clean tests
 
 all: libs $(TARGETS)
 
