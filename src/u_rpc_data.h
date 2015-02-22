@@ -198,10 +198,12 @@ char *serialize_message(struct message *msg);
 /**
  * @brief Deserialize data and fill message.
  * @param msg the message to fill.
+ * @param size the message size, use to check if every data has been read.
  * @param serialized_msg the serialized data
  * @return the 
  */
-int deserialize_message(struct message *msg, const char *serialized_msg);
+int deserialize_message(struct message *msg, int size,
+        const char *serialized_msg);
 
 #ifdef DEBUG
 

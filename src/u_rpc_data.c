@@ -117,11 +117,12 @@ int arg_size(int argc, struct rpc_arg *args) {
     int size, cpt, tmp;
 
     if (args == NULL) {
-        return -1;
+        return 0;
     }
 
     size = cpt = 0;
     while (cpt < argc) {
+        ++size;
 
         switch(args[cpt].typ) {
             case RPC_TY_VOID:
@@ -129,12 +130,17 @@ int arg_size(int argc, struct rpc_arg *args) {
                 break;
 
             case RPC_TY_STR:
-                size += 1 + strlen((char *)args[cpt].data);
+                size += 1 + strlen(args[cpt].data);
                 break;
 
             case RPC_TY_INT:
                 memcpy(&tmp, args[cpt].data, sizeof(int));
-                while(tmp > 0) {
+                if (tmp < 0) {
+                    ++size;
+                    tmp = -tmp;
+                }
+
+                while(tmp != 0) {
                     tmp /= 10;
                     ++size;
                 }
@@ -142,6 +148,7 @@ int arg_size(int argc, struct rpc_arg *args) {
                 break;
 
             default: /* FIXME: how to handle ? */
+                return -1;
                 break;
         }
 
@@ -160,6 +167,12 @@ int serialize_integer(int i, char *buf) {
     if (i < 0) {
         neg = 1;
         i   = -i;
+    }
+
+    if (i == 0) {
+        buf[0] = (char)1;
+        buf[1] = '0';
+        return 2;
     }
 
     size = 0;
@@ -191,6 +204,7 @@ int deserialize_integer(int *result, const char *msg) {
     int cpt, neg, size;
     int res;
 
+    neg = 0;
     res = 0;
 
     size = (int)msg[0] + 1;
@@ -207,6 +221,7 @@ int deserialize_integer(int *result, const char *msg) {
         ++cpt;
     }
 
+    if (neg) res *= -1;
     memcpy(result, &res, sizeof(int));
 
     return cpt;
@@ -221,10 +236,10 @@ char *serialize_message(struct message *msg) {
         return NULL;
     }
 
-    size = 2 * sizeof(int) + msg->command_length + 1 + msg->argc
+    size = (2 * sizeof(int)) + msg->command_length + 1
         + arg_size(msg->argc, msg->argv);
 
-    serialized_msg = malloc(size);
+    serialized_msg = malloc(size + sizeof(int));
     if (serialized_msg == NULL)
         return NULL;
 
@@ -258,8 +273,9 @@ char *serialize_message(struct message *msg) {
                 break;
 
             case RPC_TY_INT:
-                cpt += serialize_integer(*(int *)arg->data,
+                tmp = serialize_integer(*(int *)arg->data,
                         serialized_msg + cpt);
+                cpt += tmp;
                 break;
 
 
@@ -281,7 +297,7 @@ char *serialize_message(struct message *msg) {
     }
 
 #ifdef DEBUG
-    dwrite_log(STDERR_FILENO, "-- END OF SERIALIZE --");
+    dwrite_log(STDERR_FILENO, "-- END OF SERIALIZE --\n");
     __debug_display_message(msg);
     __debug_display_serialized_message(serialized_msg);
 #endif
@@ -289,8 +305,9 @@ char *serialize_message(struct message *msg) {
     return serialized_msg;
 }
 
-int deserialize_message(struct message *msg, const char *serialized_msg) {
-    int  msg_length, cpt, i;
+int deserialize_message(struct message *msg, int size,
+        const char *serialized_msg) {
+    int cpt, i;
     char tmp;
     struct rpc_arg *arg;
 
@@ -299,9 +316,6 @@ int deserialize_message(struct message *msg, const char *serialized_msg) {
     }
 
     cpt = 0;
-    memcpy(&msg_length, serialized_msg, sizeof(int));
-    cpt += sizeof(int);
-
     memcpy(&(msg->command_length), serialized_msg + cpt, sizeof(int));
     cpt += sizeof(int);
 
@@ -309,8 +323,8 @@ int deserialize_message(struct message *msg, const char *serialized_msg) {
     if (msg->command == NULL) {
         return -1;
     }
-    msg->command[msg->command_length] = '\0';
     memcpy(msg->command, serialized_msg + cpt, msg->command_length);
+    msg->command[msg->command_length] = '\0';
     cpt += msg->command_length;
 
     memcpy(&(msg->return_type), serialized_msg + cpt, sizeof(char));
@@ -319,10 +333,14 @@ int deserialize_message(struct message *msg, const char *serialized_msg) {
     memcpy(&(msg->argc), serialized_msg + cpt, sizeof(int));
     cpt += sizeof(int);
 
-    msg->argv = malloc(msg->argc * sizeof(struct rpc_arg));
-    if(msg->argv == NULL) {
-        free(msg->command);
-        return -1;
+    if (msg->argc > 0) {
+        msg->argv = malloc(msg->argc * sizeof(struct rpc_arg));
+        if(msg->argv == NULL) {
+            free(msg->command);
+            return -1;
+        }
+    } else {
+        msg->argv = NULL;
     }
 
     i = 0;
@@ -374,12 +392,12 @@ int deserialize_message(struct message *msg, const char *serialized_msg) {
     }
 
 #ifdef DEBUG
-    dwrite_log(STDERR_FILENO, "-- END OF DESERIALIZE MESSAGE --");
+    dwrite_log(STDERR_FILENO, "-- END OF DESERIALIZE MESSAGE --\n");
     __debug_display_serialized_message(serialized_msg);
     __debug_display_message(msg);
 #endif
 
-    return cpt - msg_length;
+    return cpt - size;
 }
 
 
@@ -452,4 +470,39 @@ void __debug_display_serialized_message(const char *serialized_msg) {
 }
 
 #endif
+
+/*
+ *int main(void)
+ *{
+ *    int i, tmp;
+ *    char *serialized;
+ *    struct message msg;
+ *    struct rpc_arg *argv;
+ *
+ *    argv = malloc(sizeof(struct rpc_arg) * 3);
+ *
+ *    char *c = "message";
+ *    argv[0].typ     = RPC_TY_STR;
+ *    argv[0].data    = strdup(c);
+ *
+ *    i = 42;
+ *    argv[1].typ  = RPC_TY_INT;
+ *    argv[1].data = malloc(sizeof(int));
+ *    memcpy(argv[1].data, &i, sizeof(int));
+ *
+ *    i = 24;
+ *    argv[2].typ  = RPC_TY_INT;
+ *    argv[2].data = malloc(sizeof(int));
+ *    memcpy(argv[2].data, &i, sizeof(int));
+ *
+ *    create_message(&msg, "func_bis", RPC_TY_INT, 3, argv);
+ *    serialized = serialize_message(&msg);
+ *
+ *    tmp = deserialize_message(&msg, serialized + sizeof(int));
+ *    free(serialized);
+ *
+ *    return EXIT_SUCCESS;
+ *}
+ *
+ */
 
