@@ -267,8 +267,6 @@ Suite *log_suite(void) {
     return s;
 }
 
-
-
 int main(void)
 {
     int number_failed;

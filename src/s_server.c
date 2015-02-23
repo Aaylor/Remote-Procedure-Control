@@ -15,6 +15,8 @@
  */
 
 
+#ifndef UNIT_TEST
+
 /**
  * @brief Entry point.
  * @return .
@@ -23,3 +25,6 @@ int main(void)
 {
     return EXIT_SUCCESS;
 }
+
+#endif
+
