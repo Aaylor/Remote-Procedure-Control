@@ -205,7 +205,7 @@ char *serialize_message(struct message *msg);
 int deserialize_message(struct message *msg, int size,
         const char *serialized_msg);
 
-#ifdef DEBUG
+#ifdef DEBUGLOG
 
 /**
  * @brief Log the message into error output.

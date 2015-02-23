@@ -85,7 +85,7 @@ int create_message(struct message *msg, const char *command, char return_type,
         msg->argv = NULL;
     }
 
-#ifdef DEBUG
+#ifdef DEBUGLOG
     dwrite_log(STDERR_FILENO, "-- END OF create_message,ret 0 --");
     __debug_display_message(msg);
 #endif
@@ -296,7 +296,7 @@ char *serialize_message(struct message *msg) {
         ++i;
     }
 
-#ifdef DEBUG
+#ifdef DEBUGLOG
     dwrite_log(STDERR_FILENO, "-- END OF SERIALIZE --\n");
     __debug_display_message(msg);
     __debug_display_serialized_message(serialized_msg);
@@ -391,7 +391,7 @@ int deserialize_message(struct message *msg, int size,
         ++i;
     }
 
-#ifdef DEBUG
+#ifdef DEBUGLOG
     dwrite_log(STDERR_FILENO, "-- END OF DESERIALIZE MESSAGE --\n");
     __debug_display_serialized_message(serialized_msg);
     __debug_display_message(msg);
@@ -401,12 +401,12 @@ int deserialize_message(struct message *msg, int size,
 }
 
 
-#ifdef DEBUG
+#ifdef DEBUGLOG
 
 void __debug_display_message(struct message *msg) {
     int cpt;
 
-    fprintf(stderr, "== DEBUG: display_message ==\n");
+    fprintf(stderr, "== DEBUGLOG: display_message ==\n");
 
     if (msg == NULL) {
         fprintf(stderr, "msg is NULL.\n");
@@ -450,7 +450,7 @@ void __debug_display_serialized_message(const char *serialized_msg) {
     int cpt, message_length;
     const char *msg;
 
-    fprintf(stderr, "== DEBUG: display serialized message ==\n");
+    fprintf(stderr, "== DEBUGLOG: display serialized message ==\n");
 
     if (serialized_msg == NULL) {
         fprintf(stderr, "serialized_msg is NULL.\n");
