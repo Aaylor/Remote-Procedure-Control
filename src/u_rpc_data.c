@@ -400,6 +400,31 @@ int deserialize_message(struct message *msg, int size,
 }
 
 
+char *serialize_answer(int status, struct rpc_arg *ret){
+    int data_size;
+
+    switch(status){
+        case RPC_RET_OK:
+
+            if(ret == NULL)
+                return NULL;
+            break;
+        case RPC_RET_UNKNOWN_FUNC:
+            break;
+        case RPC_RET_WRONG_ARG:
+            break;
+        case RPC_RET_NO_ANSWER:
+            break;
+        default:
+            break;
+    }
+
+    return NULL;
+}
+
+int deserialize_message(struct message *ret, int size,
+        const char *serialized_ret);
+
 #ifdef DEBUGLOG
 
 void __debug_display_message(struct message *msg) {
