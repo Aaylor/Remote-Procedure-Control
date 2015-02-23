@@ -126,7 +126,6 @@ int arg_size(int argc, struct rpc_arg *args) {
 
         switch(args[cpt].typ) {
             case RPC_TY_VOID:
-                size += 1;
                 break;
 
             case RPC_TY_STR:
