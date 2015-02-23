@@ -29,6 +29,7 @@ CLIENT_OBJECTS=$(CLIENT_SOURCES:.c=.o)
 
 SERVER_SOURCES=$(wildcard $(SRC)s_*.c)
 SERVER_OBJECTS=$(SERVER_SOURCES:.c=.o)
+SERVER_UNIT_TEST=tests/check_server
 
 
 
@@ -75,11 +76,16 @@ $(BIN)server: $(SERVER_OBJECTS) $(UTIL_OBJECTS)
 $(SRC)client.o: $(UTIL_HEADERS)
 $(SRC)server.o: $(UTIL_HEADERS)
 
-tests: $(UTIL_OBJECTS)
-	$(CC) $(UTIL_UNIT_TEST).c -o $(UTIL_UNIT_TEST).utest $(UTIL_OBJECTS) -Isrc -Llib -lcheck
-	@for t in tests/*.utest; do						\
+#FIXME: better rule
+tests: $(LIBNET_DYN)
+	cd src; $(CC) -I../$(LIBNET_SRC) -c *.c -c -D UNIT_TEST
+	@$(CC) -Isrc -Llib -lcheck -L$(LIBNET) -l$(NET) $(UTIL_UNIT_TEST).c -o \
+		$(UTIL_UNIT_TEST).utest $(OBJECTS)
+	@$(CC) -Isrc -Llib -lcheck -L$(LIBNET) -l$(NET) $(SERVER_UNIT_TEST).c \
+		-o $(SERVER_UNIT_TEST).utest $(OBJECTS)
+	for t in tests/*.utest; do						\
 		echo "\n~~~ $$t ~~~\n";						\
-		./$$t;										\
+		DYLD_LIBRARY_PATH="$(LIBNET)" ./$$t;										\
 		echo "\n~~~~~~~~~~~~~~~~~~\n";				\
 	done
 
