@@ -83,11 +83,12 @@ tests: $(LIBNET_DYN)
 		$(UTIL_UNIT_TEST).utest $(OBJECTS)
 	@$(CC) -Isrc -Llib -lcheck -L$(LIBNET) -l$(NET) $(SERVER_UNIT_TEST).c \
 		-o $(SERVER_UNIT_TEST).utest $(OBJECTS)
-	for t in tests/*.utest; do						\
+	@for t in tests/*.utest; do						\
 		echo "\n~~~ $$t ~~~\n";						\
 		DYLD_LIBRARY_PATH="$(LIBNET)" ./$$t;										\
 		echo "\n~~~~~~~~~~~~~~~~~~\n";				\
 	done
+	@rm -rf src/*.o
 
 %.o: %.c %.h
 	$(CC) -I$(LIBNET_SRC) -o $@ -c $< $(CFLAGS)
