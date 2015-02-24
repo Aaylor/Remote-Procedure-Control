@@ -177,7 +177,7 @@ struct function_mapper *get_function(struct memory *memory,
 
 
 
-#ifdef DEBUG
+#ifdef DEBUGLOG
 
 void __print_memory_state(struct memory *memory);
 

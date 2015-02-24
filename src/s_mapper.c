@@ -62,6 +62,8 @@ int exist_function(struct memory *memory, const char *fun_name) {
         if (strcmp(fun_name, memory->fmap[cpt].name) == 0) {
             return 1;
         }
+
+        ++cpt;
     }
 
     return 0;
@@ -80,12 +82,14 @@ struct function_mapper *get_function(struct memory *memory,
         if (strcmp(fun_name, memory->fmap[cpt].name) == 0) {
             return &(memory->fmap[cpt]);
         }
+
+        ++cpt;
     }
 
     return NULL;
 }
 
-#ifdef DEBUG
+#ifdef DEBUGLOG
 
 void __print_memory_state(struct memory *memory) {
     size_t cpt;
