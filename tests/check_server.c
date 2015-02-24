@@ -37,40 +37,68 @@ int f4(int i, char *j, int k) {
     return -42;
 }
 
-START_TEST (check_create_function) {
+void init_f1() {
     fun_ptr_u _f1;
-    fun_ptr_u _f2;
-    fun_ptr_u _f3;
-    fun_ptr_u _f4;
-
     _f1.void_fun = &f1;
-    _f2.int_fun  = &f2;
-    _f3.int_fun  = &f3;
-    _f4.int_fun  = &f4;
-
     create_function(&function1, "f1", RPC_TY_VOID, _f1, 0);
+}
+
+void init_f2() {
+    fun_ptr_u _f2;
+    _f2.int_fun  = &f2;
+    create_function(&function2, "f2", RPC_TY_INT, _f2, 0);
+}
+
+void init_f3() {
+    fun_ptr_u _f3;
+    _f3.int_fun  = &f3;
+    create_function(&function3, "f3", RPC_TY_INT, _f3, 1, RPC_TY_INT);
+}
+
+void init_f4() {
+    fun_ptr_u _f4;
+    _f4.int_fun  = &f4;
+    create_function(&function4, "f4", RPC_TY_INT, _f4, 3,
+            RPC_TY_INT, RPC_TY_STR, RPC_TY_INT);
+}
+
+void init_all() {
+    init_f1();
+    init_f2();
+    init_f3();
+    init_f4();
+}
+
+void add_all() {
+    ck_assert_int_eq(add_function(&function_memory, function1), 0);
+    ck_assert_int_eq(add_function(&function_memory, function2), 0);
+    ck_assert_int_eq(add_function(&function_memory, function3), 0);
+    ck_assert_int_eq(add_function(&function_memory, function4), 0);
+}
+
+START_TEST (check_create_function) {
+    init_f1();
     ck_assert_int_eq(function1.name_length, strlen("f1"));
     ck_assert_int_eq(strcmp(function1.name, "f1"), 0);
     ck_assert_int_eq(function1.fun.return_type, RPC_TY_VOID);
     ck_assert_int_eq(function1.fun.argc, 0);
 
-    create_function(&function2, "f2", RPC_TY_INT, _f2, 0);
+    init_f2();
     ck_assert_int_eq(function2.name_length, strlen("f2"));
     ck_assert_int_eq(strcmp(function2.name, "f2"), 0);
     ck_assert_int_eq(function2.fun.return_type, RPC_TY_INT);
     ck_assert_int_eq(function2.fun.argc, 0);
 
-    create_function(&function3, "f3", RPC_TY_INT, _f3, 1, RPC_TY_INT);
+    init_f3();
     ck_assert_int_eq(function3.name_length, strlen("f3"));
     ck_assert_int_eq(strcmp(function3.name, "f3"), 0);
     ck_assert_int_eq(function3.fun.return_type, RPC_TY_INT);
     ck_assert_int_eq(function3.fun.argc, 1);
     ck_assert_int_eq(function3.fun.argv[0], RPC_TY_INT);
 
-    create_function(&function4, "f4", RPC_TY_INT, _f4, 3,
-            RPC_TY_INT, RPC_TY_STR, RPC_TY_INT);
+    init_f4();
     ck_assert_int_eq(function4.name_length, strlen("f4"));
-    ck_assert_int_eq(strcmp(function1.name, "f4"), 0);
+    ck_assert_int_eq(strcmp(function4.name, "f4"), 0);
     ck_assert_int_eq(function4.fun.return_type, RPC_TY_INT);
     ck_assert_int_eq(function4.fun.argc, 3);
     ck_assert_int_eq(function4.fun.argv[0], RPC_TY_INT);
@@ -79,6 +107,8 @@ START_TEST (check_create_function) {
 } END_TEST
 
 START_TEST (check_add_function) {
+    init_all();
+
     ck_assert_int_eq(add_function(NULL, function1), -1);
 
     ck_assert_int_eq(add_function(&function_memory, function1), 0);
@@ -87,9 +117,16 @@ START_TEST (check_add_function) {
     ck_assert_int_eq(add_function(&function_memory, function4), 0);
 
     ck_assert_int_eq(function_memory.size, 4);
+    ck_assert_int_eq(strcmp(function_memory.fmap[0].name, "f1"), 0);
+    ck_assert_int_eq(strcmp(function_memory.fmap[1].name, "f2"), 0);
+    ck_assert_int_eq(strcmp(function_memory.fmap[2].name, "f3"), 0);
+    ck_assert_int_eq(strcmp(function_memory.fmap[3].name, "f4"), 0);
 } END_TEST
 
 START_TEST (check_exist_function) {
+    init_all();
+    add_all();
+
     ck_assert_int_eq(exist_function(NULL, ""), -1);
     ck_assert_int_eq(exist_function(&function_memory, "dummy"), 0);
     ck_assert_int_eq(exist_function(&function_memory, "f1"), 1);
@@ -100,6 +137,9 @@ START_TEST (check_exist_function) {
 
 START_TEST (check_get_function) {
     struct function_mapper *fptr;
+
+    init_all();
+    add_all();
 
     ck_assert_ptr_eq(get_function(NULL, ""), NULL);
     ck_assert_ptr_eq(get_function(&function_memory, "dummy"), NULL);
