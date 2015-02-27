@@ -13,8 +13,11 @@
  */
 
 #include "libnet.h"
+#include "unistd.h"
 
 #include "u_log.h"
 #include "u_rpc_data.h"
+
+#define BUFF 256
 
 #endif /* SERVER_H */
