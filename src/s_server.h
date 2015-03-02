@@ -12,11 +12,14 @@
  * @date 2015-02-09
  */
 
+#include <unistd.h>
+#include <string.h>
+
 #include "libnet.h"
-#include "unistd.h"
 
 #include "u_log.h"
 #include "u_rpc_data.h"
+#include "s_mapper.h"
 
 #define BUFF 256
 

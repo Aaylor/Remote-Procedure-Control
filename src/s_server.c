@@ -22,17 +22,35 @@ void loop_server(){
             /*FIXME*/
             perror("Error accept client\n");
         if(fork()==0){
-            search_function(client, serv);
+            execute_client(client, serv);
         }
     }
 
 }
 
-void execute_client(int client, int serv){
+void execute_client(int client){
     struct message *msg;
+    struct function_mapper *function;
 
     read_msg(client, msg);
+    function = search_function(client, msg);
 
+}
+
+struct function_mapper *search_function(int client, struct message *msg){
+    int ret;
+    ret = exist_function(function_memory, msg->command);
+    if(ret == 0)
+        send_error(client, "The given function does not exist")
+    else if(ret == -1)
+        send_error(client, "The mapper is null");
+    return get_function(function_memory, msg->command);
+}
+
+void send_error(client, to){
+    if(send(client, to, strlen(to), 0) < 0)
+        err(EXIT_FAILURE, "error fail to send");
+    exit(EXIT_SUCCESS);
 }
 
 void read_msg(int client, struct message *msg){
