@@ -41,7 +41,6 @@ int external_call(const char *cmd, int type, void *ret, ...){
     for(arg = va_arg(ap, void *); arg != NULL; arg = va_arg(ap, void *)){
         args[i].data = arg;
         args[i].typ = va_arg(ap, int);
-        args[i].data_size = data_size(args[i].typ, arg);
         i++;
     }
     va_end(ap);

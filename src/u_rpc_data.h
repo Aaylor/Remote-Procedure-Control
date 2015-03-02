@@ -42,6 +42,7 @@
  */
 
 /* ANSWER PROTOCOL (server → client):
+ *  <message_length : int [4 octet]>
  *  <message_type   : 1 octet>
  * ----- if ret type is OK ----
  *  <arg            : {size of arg : dependant of the type}>
@@ -152,7 +153,6 @@ int type_exists(char type);
 /**
  * @brief Create the message with given arguments.
  * Every array/string will be deep copy.
- * This function allocates memory which has to be freed.
  * @param msg the message to fill.
  * @param command the command to send.
  * @param return_type the return type.
@@ -188,8 +188,14 @@ int serialize_integer(int i, char *buf);
  */
 int deserialize_integer(int *result, const char *msg);
 
+
+/*
+ * SENDER PROTOCOL
+ */
+
 /**
  * @brief Serialize the message to be sent through sockets.
+ * This function allocates memory which has to be freed.
  * @param msg the message to serialize.
  * @return the serialized data.
  */
@@ -204,6 +210,36 @@ char *serialize_message(struct message *msg);
  */
 int deserialize_message(struct message *msg, int size,
         const char *serialized_msg);
+
+
+/*
+ * ANSWER PROTOCOL
+ */
+
+/**
+ * @brief Serialize the answer to be sent through sockets.
+ * @param status The return status. Can be RPC_RET_OK, RPC_RET_UNKNOWN_FUNC,
+ * RPC_RET_WRONG_ARG, RPC_RET_NO_ANSWER.
+ * This function allocates memory which has to be freed.
+ * @param ret the return value to serialize. Can be NULL and will not be used
+ * when the return status is RPC_RET_UNKNOWN_FUNC, RPC_RET_WRONG_ARG,
+ * RPC_RET_NO_ANSWER.
+ * @return the serialized data.
+ */
+//char *serialize_answer(char status, struct rpc_arg *ret);
+
+/**
+ * @brief Deserialize data and fill message.
+ * @param msg the message to fill.
+ * @param size the message size, use to check if every data has been read.
+ * @param serialized_msg the serialized data
+ * @return the 
+ */
+//int deserialize_message(struct message *ret, int size,
+        //const char *serialized_ret);
+
+
+
 
 #ifdef DEBUGLOG
 

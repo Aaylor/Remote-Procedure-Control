@@ -400,6 +400,69 @@ int deserialize_message(struct message *msg, int size,
 }
 
 
+/*char *serialize_answer(char status, struct rpc_arg *ret){*/
+    /*int data_size, message_length;*/
+    /*char *data;*/
+
+    /*[> Invalid return value <]*/
+    /*if( (data_size = arg_size(1, ret)) < 0)*/
+        /*return NULL;*/
+
+    /*if(status == RPC_RET_OK) {*/
+
+        /*[> Case where ret can't be null <]*/
+        /*if(ret == NULL)*/
+            /*return NULL;*/
+
+        /*data = malloc(sizeof(int) + 1 + data_size);*/
+        /*message_length = data_size + 2;*/
+
+        /*if(status == RPC_TY_INT){*/
+            /*serialize_integer(*(int *)ret->data, data + sizeof(int) + 2);*/
+        /*}*/
+        /*else if(status == RPC_TY_STR){*/
+            /*[>memcpy()<]*/
+        /*}*/
+
+        /*memcpy(data + sizeof(int) + 1, &ret->typ, sizeof(char));*/
+
+    /*}*/
+    /*else {*/
+        /*data = malloc(sizeof(int) + 1);*/
+        /*message_length = 1;*/
+    /*}*/
+
+    /*memcpy(data + sizeof(int), &status, sizeof(char));*/
+    /*memcpy(data, &message_length, sizeof(int));*/
+
+    /*return data;*/
+/*}*/
+
+/*int deserialisation_answer(struct rpc_arg *ret, int size,*/
+        /*const char *serialized_ret){*/
+    /*char status, data_length;*/
+
+    /*if(size < 1)*/
+        /*return -1;*/
+    /*memcpy(&status, serialized_ret, sizeof(char));*/
+
+    /*if(status == RPC_RET_OK) {*/
+
+        /*if(size < 2)*/
+            /*return -1;*/
+        /*memcpy(&(ret->typ), serialized_ret + 1, sizeof(char));*/
+
+        /*[>if(ret->typ == RPC_TY_)<]*/
+
+
+
+    /*}*/
+
+    /*return status;*/
+/*}*/
+
+
+
 #ifdef DEBUGLOG
 
 void __debug_display_message(struct message *msg) {
