@@ -137,8 +137,16 @@ struct memory {
      */
     size_t size;
 
+    /**
+     * @brief Boolean to check if the list has already been initialized.
+     */
     char initialized;
 
+    /**
+     * @brief The structure type corresponding to the list of function_mapper.
+     * @param memory_list The structure name.
+     * @param function_mapper The list type.
+     */
     LIST_HEAD(memory_list, function_mapper) fmap;
 
 } function_memory;
@@ -181,14 +189,40 @@ int exist_function(struct memory *memory, const char *fun_name);
 struct function_mapper *get_function(struct memory *memory,
         const char *fun_name);
 
+/**
+ * @brief Remove the asked function.
+ * @param memory The memory.
+ * @param fun_name The function to remove.
+ * @return 0 if OK, -1 else.
+ */
+int remove_function(struct memory *memory, const char *fun_name);
+
+/**
+ * @brief Remove every function in the given memory.
+ * @param memory The memory.
+ */
+void clear_mapper(struct memory *memory);
+
 
 
 #ifdef DEBUGLOG
 
+/**
+ * @brief Print the current memory state.
+ * @param memory The memory.
+ */
 void __print_memory_state(struct memory *memory);
 
+/**
+ * @brief Print the current mapper state.
+ * @param mapper The mapper.
+ */
 void __print_function_mapper_state(struct function_mapper *mapper);
 
+/**
+ * @brief Print the current function.
+ * @param ft The function.
+ */
 void __print_function_type_state(struct function_t *ft);
 
 #endif

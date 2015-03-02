@@ -97,6 +97,39 @@ struct function_mapper *get_function(struct memory *memory,
     return NULL;
 }
 
+int remove_function(struct memory *memory, const char *fun_name) {
+    struct function_mapper *fmap, *fmap_tmp;
+
+    if (memory == NULL) {
+        return -1;
+    }
+
+    LIST_FOREACH_SAFE(fmap, &memory->fmap, fm_list, fmap_tmp) {
+        if (strcmp(fun_name, fmap->name) == 0) {
+            LIST_REMOVE(fmap, fm_list);
+            free(fmap);
+            --memory->size;
+            return 0;
+        }
+    }
+
+    return -1;
+}
+
+void clear_mapper(struct memory *memory) {
+    struct function_mapper *fmap, *fmap_tmp;
+
+    fmap = LIST_FIRST(&memory->fmap);
+    while(fmap != NULL) {
+        fmap_tmp = LIST_NEXT(fmap, fm_list);
+        free(fmap);
+        fmap = fmap_tmp;
+    }
+
+    memory->size = 0;
+    LIST_INIT(&memory->fmap); /* init, to clean the structure */
+}
+
 #ifdef DEBUGLOG
 
 void __print_memory_state(struct memory *memory) {

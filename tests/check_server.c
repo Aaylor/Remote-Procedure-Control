@@ -200,6 +200,23 @@ START_TEST (check_get_function) {
     ck_assert_int_eq(fptr->fun.fun_ptr.int_fun(21, "dummy", 21), -42);
 } END_TEST
 
+START_TEST(check_remove_function) {
+    init_all();
+    add_all();
+
+    ck_assert_int_eq(remove_function(&function_memory, "f3"), 0);
+    ck_assert_int_eq(function_memory.size, 3);
+    ck_assert_int_eq(remove_function(&function_memory, "f5"), -1);
+} END_TEST
+
+START_TEST(check_clear_function) {
+    init_all();
+    add_all();
+
+    clear_mapper(&function_memory);
+    ck_assert_int_eq(function_memory.size, 0);
+} END_TEST
+
 Suite *s_mapper_suite(void) {
     Suite *s;
     TCase *t;
@@ -211,6 +228,8 @@ Suite *s_mapper_suite(void) {
     tcase_add_test(t, check_add_function);
     tcase_add_test(t, check_exist_function);
     tcase_add_test(t, check_get_function);
+    tcase_add_test(t, check_remove_function);
+    tcase_add_test(t, check_clear_function);
 
     suite_add_tcase(s, t);
 
