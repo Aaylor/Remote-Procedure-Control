@@ -125,17 +125,23 @@ struct function_mapper {
 struct memory {
 
     /**
-     * @brief The number of function saved.
+     * @brief The max number before new allocation.
      */
     size_t size;
 
     /**
+     * @brief The current number of functions.
+     */
+    size_t fun_cpt;
+
+    /**
      * @brief Array containing every functions.
      */
-    struct function_mapper fmap[MAX_FUNCTIONS];
+    struct function_mapper *fmap;
 
 } function_memory;
 
+#define INIT_MEMORY { .size = 0, .fun_cpt = 0, .fmap = NULL }
 
 /**
  * @brief Fill the mapper with every given informations.

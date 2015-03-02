@@ -40,11 +40,29 @@ int create_function(struct function_mapper *mapper, const char *name,
 }
 
 int add_function(struct memory *memory, struct function_mapper mapper) {
+    void *tmp;
+
     if (memory == NULL) {
         return -1;
     }
 
-    memory->fmap[memory->size] = mapper;
+    if (memory->fmap == NULL) {
+        memory->fmap = malloc(16 * sizeof(struct function_mapper));
+        if (memory->fmap == NULL) {
+            return -1;
+        }
+
+        memory->size = 16;
+    } else if (memory->fun_cpt >= memory->size) {
+        tmp = realloc(memory->fmap, memory->size * 2);
+        if (tmp == NULL) {
+            return -1;
+        }
+
+        memory->fmap = (struct function_mapper *)tmp;
+    }
+
+    memory->fmap[memory->fun_cpt++] = mapper;
     ++memory->size;
 
     return 0;
@@ -58,7 +76,7 @@ int exist_function(struct memory *memory, const char *fun_name) {
     }
 
     cpt = 0;
-    while (cpt < memory->size) {
+    while (cpt < memory->fun_cpt) {
         if (strcmp(fun_name, memory->fmap[cpt].name) == 0) {
             return 1;
         }
@@ -78,7 +96,7 @@ struct function_mapper *get_function(struct memory *memory,
     }
 
     cpt = 0;
-    while (cpt < memory->size) {
+    while (cpt < memory->fun_cpt) {
         if (strcmp(fun_name, memory->fmap[cpt].name) == 0) {
             return &(memory->fmap[cpt]);
         }
@@ -100,7 +118,7 @@ void __print_memory_state(struct memory *memory) {
     } else {
         cpt = 0;
 
-        while (cpt < memory->size) {
+        while (cpt < memory->fun_cpt) {
             fprintf(stderr, "\n[f%zu]\n", cpt);
             __print_function_mapper_state(&(memory->fmap[cpt]));
             fprintf(stderr, "\n");
