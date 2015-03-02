@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <sys/queue.h>
+
 #include "u_rpc_data.h"
 
 
@@ -116,6 +118,12 @@ struct function_mapper {
      */
     struct function_t fun;
 
+    /**
+     * @brief The type of the function_mapper list.
+     * @param function_mapper The function_mapper's type.
+     */
+    LIST_ENTRY(function_mapper) fm_list;
+
 };
 
 
@@ -129,19 +137,11 @@ struct memory {
      */
     size_t size;
 
-    /**
-     * @brief The current number of functions.
-     */
-    size_t fun_cpt;
+    char initialized;
 
-    /**
-     * @brief Array containing every functions.
-     */
-    struct function_mapper *fmap;
+    LIST_HEAD(memory_list, function_mapper) fmap;
 
 } function_memory;
-
-#define INIT_MEMORY { .size = 0, .fun_cpt = 0, .fmap = NULL }
 
 /**
  * @brief Fill the mapper with every given informations.

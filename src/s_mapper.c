@@ -40,48 +40,41 @@ int create_function(struct function_mapper *mapper, const char *name,
 }
 
 int add_function(struct memory *memory, struct function_mapper mapper) {
-    void *tmp;
+    struct function_mapper *copy;
 
     if (memory == NULL) {
         return -1;
     }
 
-    if (memory->fmap == NULL) {
-        memory->fmap = malloc(16 * sizeof(struct function_mapper));
-        if (memory->fmap == NULL) {
-            return -1;
-        }
-
-        memory->size = 16;
-    } else if (memory->fun_cpt >= memory->size) {
-        tmp = realloc(memory->fmap, memory->size * 2);
-        if (tmp == NULL) {
-            return -1;
-        }
-
-        memory->fmap = (struct function_mapper *)tmp;
+    if (memory->initialized == 0) {
+        LIST_INIT(&memory->fmap);
+        memory->initialized = 1;
     }
 
-    memory->fmap[memory->fun_cpt++] = mapper;
+    copy = malloc(sizeof(struct function_mapper));
+    if (copy == NULL) {
+        return -1;
+    }
+
+    *copy = mapper;
+
+    LIST_INSERT_HEAD(&memory->fmap, copy, fm_list);
     ++memory->size;
 
     return 0;
 }
 
 int exist_function(struct memory *memory, const char *fun_name) {
-    size_t cpt;
+    struct function_mapper *fmap;
 
     if (memory == NULL) {
         return -1;
     }
 
-    cpt = 0;
-    while (cpt < memory->fun_cpt) {
-        if (strcmp(fun_name, memory->fmap[cpt].name) == 0) {
+    LIST_FOREACH(fmap, &memory->fmap, fm_list) {
+        if (strcmp(fun_name, fmap->name) == 0) {
             return 1;
         }
-
-        ++cpt;
     }
 
     return 0;
@@ -89,19 +82,16 @@ int exist_function(struct memory *memory, const char *fun_name) {
 
 struct function_mapper *get_function(struct memory *memory,
         const char *fun_name) {
-    size_t cpt;
+    struct function_mapper *fmap;
 
     if (memory == NULL) {
         return NULL;
     }
 
-    cpt = 0;
-    while (cpt < memory->fun_cpt) {
-        if (strcmp(fun_name, memory->fmap[cpt].name) == 0) {
-            return &(memory->fmap[cpt]);
+    LIST_FOREACH(fmap, &memory->fmap, fm_list) {
+        if (strcmp(fun_name, fmap->name) == 0) {
+            return fmap;
         }
-
-        ++cpt;
     }
 
     return NULL;
@@ -111,6 +101,7 @@ struct function_mapper *get_function(struct memory *memory,
 
 void __print_memory_state(struct memory *memory) {
     size_t cpt;
+    struct function_mapper *fmap;
 
     fprintf(stderr, "==== MEMORY STATE ====");
     if (memory == NULL) {
@@ -118,9 +109,9 @@ void __print_memory_state(struct memory *memory) {
     } else {
         cpt = 0;
 
-        while (cpt < memory->fun_cpt) {
+        LIST_FOREACH(fmap, &memory->fmap, fm_list) {
             fprintf(stderr, "\n[f%zu]\n", cpt);
-            __print_function_mapper_state(&(memory->fmap[cpt]));
+            __print_function_mapper_state(fmap);
             fprintf(stderr, "\n");
             ++cpt;
         }

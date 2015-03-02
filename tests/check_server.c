@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <check.h>
 
+#include <sys/queue.h>
+
 #include "../src/s_mapper.h"
 #include "../src/u_rpc_data.h"
 
@@ -17,8 +19,6 @@ struct function_mapper function1;
 struct function_mapper function2;
 struct function_mapper function3;
 struct function_mapper function4;
-
-struct memory fmemory = INIT_MEMORY;
 
 void f1(void) {
 }
@@ -72,10 +72,10 @@ void init_all() {
 }
 
 void add_all() {
-    ck_assert_int_eq(add_function(&fmemory, function1), 0);
-    ck_assert_int_eq(add_function(&fmemory, function2), 0);
-    ck_assert_int_eq(add_function(&fmemory, function3), 0);
-    ck_assert_int_eq(add_function(&fmemory, function4), 0);
+    ck_assert_int_eq(add_function(&function_memory, function1), 0);
+    ck_assert_int_eq(add_function(&function_memory, function2), 0);
+    ck_assert_int_eq(add_function(&function_memory, function3), 0);
+    ck_assert_int_eq(add_function(&function_memory, function4), 0);
 }
 
 START_TEST (check_create_function) {
@@ -109,20 +109,38 @@ START_TEST (check_create_function) {
 } END_TEST
 
 START_TEST (check_add_function) {
+    struct function_mapper *fmap;
+
     init_all();
 
     ck_assert_int_eq(add_function(NULL, function1), -1);
 
-    ck_assert_int_eq(add_function(&fmemory, function1), 0);
-    ck_assert_int_eq(add_function(&fmemory, function2), 0);
-    ck_assert_int_eq(add_function(&fmemory, function3), 0);
-    ck_assert_int_eq(add_function(&fmemory, function4), 0);
+    ck_assert_int_eq(add_function(&function_memory, function1), 0);
+    ck_assert_int_eq(add_function(&function_memory, function2), 0);
+    ck_assert_int_eq(add_function(&function_memory, function3), 0);
+    ck_assert_int_eq(add_function(&function_memory, function4), 0);
 
-    ck_assert_int_eq(fmemory.fun_cpt, 4);
-    ck_assert_int_eq(strcmp(fmemory.fmap[0].name, "f1"), 0);
-    ck_assert_int_eq(strcmp(fmemory.fmap[1].name, "f2"), 0);
-    ck_assert_int_eq(strcmp(fmemory.fmap[2].name, "f3"), 0);
-    ck_assert_int_eq(strcmp(fmemory.fmap[3].name, "f4"), 0);
+
+    ck_assert_int_eq(function_memory.size, 4);
+
+    fmap = LIST_FIRST(&function_memory.fmap);
+    ck_assert_ptr_ne(fmap, NULL);
+    ck_assert_int_eq(strcmp(fmap->name, "f4"), 0);
+
+    fmap = LIST_NEXT(fmap, fm_list);
+    ck_assert_ptr_ne(fmap, NULL);
+    ck_assert_int_eq(strcmp(fmap->name, "f3"), 0);
+
+    fmap = LIST_NEXT(fmap, fm_list);
+    ck_assert_ptr_ne(fmap, NULL);
+    ck_assert_int_eq(strcmp(fmap->name, "f2"), 0);
+
+    fmap = LIST_NEXT(fmap, fm_list);
+    ck_assert_ptr_ne(fmap, NULL);
+    ck_assert_int_eq(strcmp(fmap->name, "f1"), 0);
+
+    fmap = LIST_NEXT(fmap, fm_list);
+    ck_assert_ptr_eq(fmap, NULL);
 } END_TEST
 
 START_TEST (check_exist_function) {
@@ -130,11 +148,11 @@ START_TEST (check_exist_function) {
     add_all();
 
     ck_assert_int_eq(exist_function(NULL, ""), -1);
-    ck_assert_int_eq(exist_function(&fmemory, "dummy"), 0);
-    ck_assert_int_eq(exist_function(&fmemory, "f1"), 1);
-    ck_assert_int_eq(exist_function(&fmemory, "f2"), 1);
-    ck_assert_int_eq(exist_function(&fmemory, "f3"), 1);
-    ck_assert_int_eq(exist_function(&fmemory, "f4"), 1);
+    ck_assert_int_eq(exist_function(&function_memory, "dummy"), 0);
+    ck_assert_int_eq(exist_function(&function_memory, "f1"), 1);
+    ck_assert_int_eq(exist_function(&function_memory, "f2"), 1);
+    ck_assert_int_eq(exist_function(&function_memory, "f3"), 1);
+    ck_assert_int_eq(exist_function(&function_memory, "f4"), 1);
 } END_TEST
 
 START_TEST (check_get_function) {
@@ -144,16 +162,16 @@ START_TEST (check_get_function) {
     add_all();
 
     ck_assert_ptr_eq(get_function(NULL, ""), NULL);
-    ck_assert_ptr_eq(get_function(&fmemory, "dummy"), NULL);
+    ck_assert_ptr_eq(get_function(&function_memory, "dummy"), NULL);
 
-    fptr = get_function(&fmemory, "f1");
+    fptr = get_function(&function_memory, "f1");
     ck_assert_ptr_ne(fptr, NULL);
     ck_assert_int_eq(fptr->name_length, strlen("f1"));
     ck_assert_int_eq(strcmp(fptr->name, "f1"), 0);
     ck_assert_int_eq(fptr->fun.return_type, RPC_TY_VOID);
     ck_assert_int_eq(fptr->fun.argc, 0);
 
-    fptr = get_function(&fmemory, "f2");
+    fptr = get_function(&function_memory, "f2");
     ck_assert_ptr_ne(fptr, NULL);
     ck_assert_int_eq(fptr->name_length, strlen("f2"));
     ck_assert_int_eq(strcmp(fptr->name, "f2"), 0);
@@ -161,7 +179,7 @@ START_TEST (check_get_function) {
     ck_assert_int_eq(fptr->fun.argc, 0);
     ck_assert_int_eq(fptr->fun.fun_ptr.int_fun(), 42);
 
-    fptr = get_function(&fmemory, "f3");
+    fptr = get_function(&function_memory, "f3");
     ck_assert_ptr_ne(fptr, NULL);
     ck_assert_int_eq(strcmp(fptr->name, "f3"), 0);
     ck_assert_int_eq(fptr->fun.return_type, RPC_TY_INT);
@@ -169,7 +187,7 @@ START_TEST (check_get_function) {
     ck_assert_int_eq(fptr->fun.argv[0], RPC_TY_INT);
     ck_assert_int_eq(fptr->fun.fun_ptr.int_fun(2), 42);
 
-    fptr = get_function(&fmemory, "f4");
+    fptr = get_function(&function_memory, "f4");
     ck_assert_ptr_ne(fptr, NULL);
     ck_assert_int_eq(fptr->name_length, strlen("f4"));
     ck_assert_int_eq(strcmp(fptr->name, "f4"), 0);
