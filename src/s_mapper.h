@@ -25,8 +25,6 @@
 
 #define FUNCTION_NAME_LENGTH 255
 
-#define MAX_FUNCTIONS        256
-
 #define MAX_PARAMETERS       127
 
 

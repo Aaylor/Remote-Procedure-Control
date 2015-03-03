@@ -29,7 +29,7 @@ int create_message(struct message *msg, const char *command, char return_type,
     msg->command_length = strlen(command);
     msg->command = strdup(command);
     if (msg->command == NULL) {
-        return -1;
+        goto fail;
     }
 
     msg->return_type = return_type;
@@ -37,14 +37,12 @@ int create_message(struct message *msg, const char *command, char return_type,
 
     if (argc > 0) {
         if (argv == NULL) {
-            free(msg->command);
-            return -1;
+            goto fail;
         }
 
         msg->argv = malloc(sizeof(struct rpc_arg) * msg->argc);
         if (msg->argv == NULL) {
-            free(msg->command);
-            return -1;
+            goto fail;
         }
 
         cpt = 0;
@@ -59,9 +57,7 @@ int create_message(struct message *msg, const char *command, char return_type,
                 case RPC_TY_INT:
                     msg->argv[cpt].data = malloc(sizeof(int));
                     if (msg->argv[cpt].data == NULL) {
-                        free(msg->command);
-                        free(msg->argv);
-                        /* FIXME: possible memory leak here. */
+                        goto fail;
                     }
                     memcpy(msg->argv[cpt].data, argv[cpt].data, sizeof(int));
                     break;
@@ -69,9 +65,7 @@ int create_message(struct message *msg, const char *command, char return_type,
                 case RPC_TY_STR:
                     msg->argv[cpt].data = strdup((char *)argv[cpt].data);
                     if (msg->argv[cpt].data == NULL) {
-                        free(msg->command);
-                        free(msg->argv);
-                        /* FIXME: possible memory leak here. */
+                        goto fail;
                     }
                     break;
 
@@ -91,6 +85,24 @@ int create_message(struct message *msg, const char *command, char return_type,
 #endif
 
     return 0;
+
+fail:
+    if (msg->command != NULL) {
+        free(msg->command);
+    }
+
+    if (msg->argv != NULL) {
+        cpt = 0;
+        while (cpt < argc) {
+            if (msg->argv[cpt].data != NULL) {
+                free(msg->argv[cpt].data);
+            }
+        }
+        free(msg->argv);
+    }
+
+    return -1;
+
 }
 
 void free_message(struct message *msg) {
@@ -100,7 +112,10 @@ void free_message(struct message *msg) {
 
     cpt = 0;
     while(cpt < msg->argc) {
-        free(msg->argv[cpt].data);
+        if (msg->argv[cpt].data != NULL) {
+            free(msg->argv[cpt].data);
+        }
+
         ++cpt;
     }
 
@@ -146,7 +161,7 @@ int arg_size(int argc, struct rpc_arg *args) {
                 ++size;
                 break;
 
-            default: /* FIXME: how to handle ? */
+            default:
                 return -1;
                 break;
         }
@@ -227,7 +242,7 @@ int deserialize_integer(int *result, const char *msg) {
 }
 
 char *serialize_message(struct message *msg) {
-    int cpt, i, size, tmp;
+    int  cpt, i, size, tmp;
     char *serialized_msg;
     struct rpc_arg *arg;
 
@@ -239,8 +254,9 @@ char *serialize_message(struct message *msg) {
         + arg_size(msg->argc, msg->argv);
 
     serialized_msg = malloc(size + sizeof(int));
-    if (serialized_msg == NULL)
-        return NULL;
+    if (serialized_msg == NULL) {
+        goto fail;
+    }
 
     cpt = 0;
     memcpy(serialized_msg + cpt, &size, sizeof(int));
@@ -288,8 +304,7 @@ char *serialize_message(struct message *msg) {
                 break;
 
             default:
-                free(serialized_msg);
-                return NULL;
+                goto fail;
         }
 
         ++i;
@@ -302,6 +317,13 @@ char *serialize_message(struct message *msg) {
 #endif
 
     return serialized_msg;
+
+fail:
+    if (serialized_msg != NULL) {
+        free(serialized_msg);
+    }
+
+    return NULL;
 }
 
 int deserialize_message(struct message *msg, int size,
@@ -320,7 +342,7 @@ int deserialize_message(struct message *msg, int size,
 
     msg->command = malloc(msg->command_length + 1);
     if (msg->command == NULL) {
-        return -1;
+        goto fail;
     }
     memcpy(msg->command, serialized_msg + cpt, msg->command_length);
     msg->command[msg->command_length] = '\0';
@@ -335,8 +357,7 @@ int deserialize_message(struct message *msg, int size,
     if (msg->argc > 0) {
         msg->argv = malloc(msg->argc * sizeof(struct rpc_arg));
         if(msg->argv == NULL) {
-            free(msg->command);
-            return -1;
+            goto fail;
         }
     } else {
         msg->argv = NULL;
@@ -357,9 +378,7 @@ int deserialize_message(struct message *msg, int size,
             case RPC_TY_INT:
                 arg->data = malloc(sizeof(int));
                 if (arg->data == NULL) {
-                    free(msg->command);
-                    free(msg->argv);
-                    return -1;
+                    goto fail;
                 }
 
                 cpt += deserialize_integer(arg->data, serialized_msg + cpt);
@@ -371,9 +390,7 @@ int deserialize_message(struct message *msg, int size,
 
                 arg->data = malloc(tmp * sizeof(char) + 1);
                 if (arg->data == NULL) {
-                    free(msg->command);
-                    free(msg->argv);
-                    return -1;
+                    goto fail;
                 }
 
                 memcpy(arg->data, serialized_msg + cpt, tmp);
@@ -382,9 +399,7 @@ int deserialize_message(struct message *msg, int size,
                 break;
 
             default:
-                free(msg->command);
-                free(msg->argv);
-                return -1;
+                goto fail;
         }
 
         ++i;
@@ -397,6 +412,26 @@ int deserialize_message(struct message *msg, int size,
 #endif
 
     return cpt - size;
+
+fail:
+    if (msg != NULL) {
+        if (msg->command != NULL) {
+            free(msg->command);
+        }
+
+        if (msg->argv != NULL) {
+            cpt = 0;
+            while (cpt < msg->argc) {
+                if (msg->argv[cpt].data != NULL) {
+                    free(msg->argv[cpt].data);
+                }
+            }
+
+            free(msg->argv);
+        }
+    }
+
+    return -1;
 }
 
 
