@@ -89,6 +89,15 @@
  */
 #define RPC_RET_NO_ANSWER       0x03
 
+/**
+ * @brief Return code when type return is wrong.
+ */
+#define RPC_RET_WRONG_TYP       0x04
+
+/**
+ * @brief Return code when the number of argument does not match.
+ */
+#define RPC_WRONG_NUMBER_ARGS   0x05
 
 
 /**
