@@ -3,11 +3,7 @@
 
 #include "s_server.h"
 
-/**
- * @brief Create the loop waiting for request of the client. Fork before
- * executing request.
- */
-void loop_server(){
+void loop_server(void){
     struct sockaddr addr;
     socklen_t len;
     int serv, client;
@@ -28,20 +24,10 @@ void loop_server(){
 
 }
 
-/**
- * @brief execute a double fork to verify if after 5 seconds the process is
- * still running. If yes, kill it and return the appropriate error to the
- * client.
- * @param client The socket client on which we are connected.
- */
 void gestion_client(int client){
     execute_client(client);
 }
 
-/**
- * @brief Use to execute the main code of a client.
- * @param The client socket which is connected.
- */
 void execute_client(int client){
     struct message *msg;
     struct function_mapper *function;
@@ -52,15 +38,26 @@ void execute_client(int client){
 
 }
 
-void execute_function(int client, function_mapper *function, struct message *msg){}
+void execute_function(int client, void *return_t, function_mapper *function, struct message *msg){
+    switch(msg->argc){
+        case 0:
+            return_t = function->fun_ptr();
+            break;
+        case 1:
+            return_t = function->fun_ptr(function->argv[0]);
+            break;
+        case 2:
+            return_t = function->fun_ptr(function->argv[0], function->argv[1]);
+            break;
+        case 3:
+            return_t = function->fun_ptr(function->argv[0], function->argv[1], function->argv[2]);
+            break;
+        case default:
+            send_error(client, RPC_WRONG_NUMBER_ARGS);
+            break;
+    }
+}
 
-/**
- * @brief verify if the function called is the same as the function that we
- * want.
- * @param client The socket client on which we are connected.
- * @param f The function take on the mapper.
- * @param msg The message send by the client.
- */
 void verification_function(int client, function_mapper *f, struct message *msg){
     int i;
     if(f->argc != msg->argc)
@@ -73,12 +70,6 @@ void verification_function(int client, function_mapper *f, struct message *msg){
         send_error(client, RPC_RET_WRONG_TYP);
 }
 
-/**
- * @brief Search a function on the mapper considering a message given by the
- * client.
- * @param client The socket client on which we are connected.
- * @param msg The message send by the client.
- */
 struct function_mapper *search_function(int client, struct message *msg){
     int ret;
     ret = exist_function(function_memory, msg->command);
@@ -89,22 +80,12 @@ struct function_mapper *search_function(int client, struct message *msg){
     return get_function(function_memory, msg->command);
 }
 
-/**
- * @brief Function taking a client and send him an error message.
- * @param client The socket client on which we are connected.
- * @param i The integer which represents the type error expected.
- */
 void send_error(int client, int i){
     if(send(client, &i, sizeof(int), 0) < 0)
         err(EXIT_FAILURE, "error fail to send");
     exit(EXIT_SUCCESS);
 }
 
-/**
- * @brief read a message in the client socket and save that in the msg param.
- * @param client The socket client on which we are connected.
- * @param msg The message on which the data read is saved.
- */
 void read_msg(int client, struct message *msg){
     int size;
     char *from;

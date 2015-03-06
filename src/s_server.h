@@ -23,4 +23,66 @@
 
 #define BUFF 256
 
+/**
+ * @brief Create the loop waiting for request of the client. Fork before
+ * executing request.
+ */
+void loop_server(void);
+
+/**
+ * @brief execute a double fork to verify if after 5 seconds the process is
+ * still running. If yes, kill it and return the appropriate error to the
+ * client.
+ * @param client The socket client on which we are connected.
+ */
+void gestion_client(int client);
+
+/**
+ * @brief Use to execute the main code of a client.
+ * @param The client socket which is connected.
+ */
+void execute_client(int client);
+
+/**
+ * @brief verify if the function called is the same as the function that we
+ * want.
+ * @param client The socket client on which we are connected.
+ * @param f The function take on the mapper.
+ * @param msg The message send by the client.
+ */
+void verification_function(int client, function_mapper *f, struct message *msg);
+
+/**
+ * @brief Search a function on the mapper considering a message given by the
+ * client.
+ * @param client The socket client on which we are connected.
+ * @param msg The message send by the client.
+ */
+struct function_mapper *search_function(int client, struct message *msg);
+
+/**
+ * @brief Function taking a client and send him an error message.
+ * @param client The socket client on which we are connected.
+ * @param i The integer which represents the type error expected.
+ */
+void send_error(int client, int i);
+
+/**
+ * @brief read a message in the client socket and save that in the msg param.
+ * @param client The socket client on which we are connected.
+ * @param msg The message on which the data read is saved.
+ */
+void read_msg(int client, struct message *msg);
+
+/**
+ * @brief Take the client a message and a function mapper, and execute the
+ * function writing the return in the return_t variable.
+ * @param client The socket client on which we are connected.
+ * @param return_t The value return by the function executed.
+ * @param function The function that we want to execute.
+ * @param msg The message given by the client including all of the argument.
+ */
+void execute_function(int client, void *return_t, function_mapper *function, struct message *msg);
+
 #endif /* SERVER_H */
+
