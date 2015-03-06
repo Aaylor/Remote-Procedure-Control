@@ -14,6 +14,7 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <err.h>
 
 #include "libnet.h"
 
@@ -50,7 +51,7 @@ void execute_client(int client);
  * @param f The function take on the mapper.
  * @param msg The message send by the client.
  */
-void verification_function(int client, function_mapper *f, struct message *msg);
+void verification_function(int client, struct function_mapper *f, struct message *msg);
 
 /**
  * @brief Search a function on the mapper considering a message given by the
@@ -82,7 +83,7 @@ void read_msg(int client, struct message *msg);
  * @param function The function that we want to execute.
  * @param msg The message given by the client including all of the argument.
  */
-void execute_function(int client, void *return_t, function_mapper *function, struct message *msg);
+void execute_function(int client, void *return_t, struct function_t *function, struct message *msg);
 
 #endif /* SERVER_H */
 

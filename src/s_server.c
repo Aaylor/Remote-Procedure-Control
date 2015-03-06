@@ -14,7 +14,7 @@ void loop_server(void){
     }
 
     while(1){
-        if ((client=accept(s, &addr, &len)) < 0)
+        if ((client=accept(serv, &addr, &len)) < 0)
             /*FIXME*/
             perror("Error accept client\n");
         if(fork()==0){
@@ -31,6 +31,7 @@ void gestion_client(int client){
 void execute_client(int client){
     struct message *msg;
     struct function_mapper *function;
+    msg=NULL;
 
     read_msg(client, msg);
     function = search_function(client, msg);
@@ -38,46 +39,94 @@ void execute_client(int client){
 
 }
 
-void execute_function(int client, void *return_t, function_mapper *function, struct message *msg){
-    switch(msg->argc){
-        case 0:
-            return_t = function->fun_ptr();
+void execute_function(int client, void *return_t, struct function_t *function, struct message *msg){
+    int res;
+    /*char *str;*/
+    switch(msg->return_type){
+        case RPC_TY_VOID:
+            switch(msg->argc){
+                case 0:
+                    function->fun_ptr.void_fun();
+                    return_t = NULL;
+                    break;
+                case 1:
+                    function->fun_ptr.void_fun(function->argv[0]);
+                    return_t = NULL;
+                    break;
+                case 2:
+                    function->fun_ptr.void_fun(function->argv[0], function->argv[1]);
+                    return_t = NULL;
+                    break;
+                case 3:
+                    function->fun_ptr.void_fun(function->argv[0], function->argv[1], function->argv[2]);
+                    return_t = NULL;
+                    break;
+                default:
+                    send_error(client, RPC_WRONG_NUMBER_ARGS);
+            }
             break;
-        case 1:
-            return_t = function->fun_ptr(function->argv[0]);
+        case RPC_TY_INT:
+            switch(msg->argc){
+                case 0:
+                    res = function->fun_ptr.int_fun();
+                    break;
+                case 1:
+                    res = function->fun_ptr.int_fun(function->argv[0]);
+                    break;
+                case 2:
+                    res = function->fun_ptr.int_fun(function->argv[0], function->argv[1]);
+                    break;
+                case 3:
+                    res = function->fun_ptr.int_fun(function->argv[0], function->argv[1], function->argv[2]);
+                    break;
+                default:
+                    send_error(client, RPC_WRONG_NUMBER_ARGS);
+            }
+            memcpy(&return_t, &res, sizeof(int));
             break;
-        case 2:
-            return_t = function->fun_ptr(function->argv[0], function->argv[1]);
-            break;
-        case 3:
-            return_t = function->fun_ptr(function->argv[0], function->argv[1], function->argv[2]);
-            break;
-        case default:
-            send_error(client, RPC_WRONG_NUMBER_ARGS);
-            break;
+        /*case RPC_TY_STR:
+            switch(msg->argc){
+                case 0:
+                    return_t = &(function->fun_ptr.str_fun());
+                    break;
+                case 1:
+                    return_t = &(function->fun_ptr.str_fun(function->argv[0]));
+                    break;
+                case 2:
+                    return_t = &(function->fun_ptr.str_fun(function->argv[0], function->argv[1]));
+                    break;
+                case 3:
+                    return_t = &(function->fun_ptr.str_fun(function->argv[0], function->argv[1], function->argv[2]));
+                    break;
+                default:
+                    send_error(client, RPC_WRONG_NUMBER_ARGS);
+            }
+            break;*/
+        default :
+            send_error(client, RPC_RET_UNKNOWN_FUNC);
     }
 }
 
-void verification_function(int client, function_mapper *f, struct message *msg){
+void verification_function(int client, struct function_mapper *f, struct message *msg){
     int i;
-    if(f->argc != msg->argc)
+    if(f->fun.argc != msg->argc)
         send_error(client, RPC_WRONG_NUMBER_ARGS);
-    for(i = 0; i < f->argc; i++){
-        if(f->argv[i] != msg->argv[i]->typ)
+    for(i = 0; i < f->fun.argc; i++){
+        if(f->fun.argv[i] != msg->argv[i].typ)
             send_error(client, RPC_RET_WRONG_ARG);
     }
-    if(f->return_type != msg->return_type)
+    if(f->fun.return_type != msg->return_type)
         send_error(client, RPC_RET_WRONG_TYP);
 }
 
 struct function_mapper *search_function(int client, struct message *msg){
     int ret;
-    ret = exist_function(function_memory, msg->command);
+    ret = exist_function(&function_memory, msg->command);
     if(ret == 0)
         send_error(client, RPC_RET_UNKNOWN_FUNC);
     else if(ret == -1)
         send_error(client, RPC_RET_UNKNOWN_FUNC);
-    return get_function(function_memory, msg->command);
+    return get_function(&function_memory, msg->command);
 }
 
 void send_error(int client, int i){
