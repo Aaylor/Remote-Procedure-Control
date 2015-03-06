@@ -71,10 +71,12 @@ int exist_function(struct memory *memory, const char *fun_name) {
         return -1;
     }
 
-    LIST_FOREACH(fmap, &memory->fmap, fm_list) {
+    for (fmap = memory->fmap.lh_first;
+            fmap != NULL; fmap = fmap->fm_list.le_next) {
         if (strcmp(fun_name, fmap->name) == 0) {
             return 1;
         }
+
     }
 
     return 0;
@@ -88,7 +90,8 @@ struct function_mapper *get_function(struct memory *memory,
         return NULL;
     }
 
-    LIST_FOREACH(fmap, &memory->fmap, fm_list) {
+    for (fmap = memory->fmap.lh_first;
+            fmap != NULL; fmap = fmap->fm_list.le_next) {
         if (strcmp(fun_name, fmap->name) == 0) {
             return fmap;
         }
@@ -98,19 +101,23 @@ struct function_mapper *get_function(struct memory *memory,
 }
 
 int remove_function(struct memory *memory, const char *fun_name) {
-    struct function_mapper *fmap, *fmap_tmp;
+    struct function_mapper *fmap;
 
     if (memory == NULL) {
         return -1;
     }
 
-    LIST_FOREACH_SAFE(fmap, &memory->fmap, fm_list, fmap_tmp) {
+    for (fmap = memory->fmap.lh_first;
+            fmap != NULL; fmap = fmap->fm_list.le_next) {
         if (strcmp(fun_name, fmap->name) == 0) {
-            LIST_REMOVE(fmap, fm_list);
-            free(fmap);
-            --memory->size;
-            return 0;
+            break;
         }
+    }
+
+    if (fmap != NULL) {
+        LIST_REMOVE(fmap, fm_list);
+        free(fmap);
+        --memory->size;
     }
 
     return -1;
