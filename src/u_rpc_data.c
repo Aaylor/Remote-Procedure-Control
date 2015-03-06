@@ -27,10 +27,11 @@ int create_message(struct message *msg, const char *command, char return_type,
     }
 
     msg->command_length = strlen(command);
-    msg->command = strdup(command);
+    msg->command = malloc(msg->command_length + 1);
     if (msg->command == NULL) {
         goto fail;
     }
+    strcpy(msg->command, command);
 
     msg->return_type = return_type;
     msg->argc = argc;
@@ -63,10 +64,11 @@ int create_message(struct message *msg, const char *command, char return_type,
                     break;
 
                 case RPC_TY_STR:
-                    msg->argv[cpt].data = strdup((char *)argv[cpt].data);
+                    msg->argv[cpt].data = malloc(strlen(argv[cpt].data) + 1);
                     if (msg->argv[cpt].data == NULL) {
                         goto fail;
                     }
+                    strcpy(msg->argv[cpt].data, argv[cpt].data);
                     break;
 
                 default:

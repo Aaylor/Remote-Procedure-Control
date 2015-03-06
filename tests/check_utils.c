@@ -45,7 +45,8 @@ START_TEST (check_create_message) {
 
     char *c = "message";
     argv[0].typ     = RPC_TY_STR;
-    argv[0].data    = strdup(c);
+    argv[0].data    = malloc(strlen(c) + 1);
+    strcpy(argv[0].data, c);
 
     i = 42;
     argv[1].typ  = RPC_TY_INT;
@@ -195,7 +196,8 @@ START_TEST (check_de_serialize_message) {
 
     char *c = "message";
     argv[0].typ     = RPC_TY_STR;
-    argv[0].data    = strdup(c);
+    argv[0].data    = malloc(strlen(c) + 1);
+    strcpy(argv[0].data, c);
 
     i = 42;
     argv[1].typ  = RPC_TY_INT;
