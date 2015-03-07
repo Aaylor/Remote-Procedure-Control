@@ -14,10 +14,13 @@ void loop_server(void){
     }
 
     while(1){
+        fwrite_log(stderr, "Waiting client.");
         if ((client=accept(serv, &addr, &len)) < 0)
             /*FIXME*/
             perror("Error accept client\n");
+        fwrite_log(stderr, "Client accepted.");
         if(fork()==0){
+            fwrite_log(stderr, "New process: handling client.");
             gestion_client(client);
         }
     }
@@ -29,14 +32,17 @@ void gestion_client(int client){
 }
 
 void execute_client(int client){
-    struct message *msg;
+    struct message msg;
     struct function_mapper *function;
-    msg=NULL;
 
-    read_msg(client, msg);
-    function = search_function(client, msg);
-    verification_function(client, function, msg);
+    fwrite_log(stderr, "Reading client message.");
+    read_msg(client, &msg);
 
+    fwrite_log(stderr, "Search the function queried.");
+    function = search_function(client, &msg);
+
+    fwrite_log(stderr, "Function verification.");
+    verification_function(client, function, &msg);
 }
 
 void execute_function(int client, void *return_t, struct function_t *function, struct message *msg){
@@ -122,11 +128,17 @@ void verification_function(int client, struct function_mapper *f, struct message
 struct function_mapper *search_function(int client, struct message *msg){
     int ret;
     ret = exist_function(&function_memory, msg->command);
-    if(ret == 0)
+    if(ret == 0) {
+        fprintf(stderr, "[%d] Unknown function `%s`.\n", getpid(), msg->command);
         send_error(client, RPC_RET_UNKNOWN_FUNC);
-    else if(ret == -1)
+    }
+    else if(ret == -1) {
+        fprintf(stderr, "[%d] Unknown function `%s`.\n", getpid(), msg->command);
         send_error(client, RPC_RET_UNKNOWN_FUNC);
+    }
+    fprintf(stderr, "[%d] Function `%s` found.\n", getpid(), msg->command);
     return get_function(&function_memory, msg->command);
+
 }
 
 void send_error(int client, int i){
@@ -144,7 +156,7 @@ void read_msg(int client, struct message *msg){
 
     from = malloc((size+1)*sizeof(char));
 
-    if(recv(client, &from, size*sizeof(char), 0) < 0){
+    if(recv(client, from, size*sizeof(char), 0) < 0){
         free(from);
         err(EXIT_FAILURE, "Error recv2\n");
     }
@@ -178,11 +190,14 @@ int plus(int a, int b){
  */
 int main(void)
 {
+    fwrite_log(stderr, "Server initialization: add some functions.");
     struct function_mapper map;
     fun_ptr_u ptr;
     ptr.int_fun = &plus;
     create_function(&map, "plus", RPC_TY_INT, ptr, 2, RPC_TY_INT, RPC_TY_INT);
     add_function(&function_memory, map);
+
+    fwrite_log(stderr, "Server loop.");
     loop_server();
     return EXIT_SUCCESS;
 }

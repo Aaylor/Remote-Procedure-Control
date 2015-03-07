@@ -1,6 +1,6 @@
 UNAME = $(shell uname -s)
 
-CC=gcc
+CC=gcc -g
 
 ifeq ($(DEBUG),1)
 	CFLAGS=-Wall -pedantic -std=c99 -D _POSIX_C_SOURCE=200112L -Werror -Wextra \
