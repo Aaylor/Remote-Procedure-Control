@@ -203,12 +203,14 @@ int deserialize_integer(int *result, const char *msg);
  */
 
 /**
- * @brief Serialize the message to be sent through sockets.
+ * @brief Serialize the message to be sent through sockets, and store its size
+ * into the msg_size variable.
  * This function allocates memory which has to be freed.
+ * @param msg_size the stored size of the message
  * @param msg the message to serialize.
  * @return the serialized data.
  */
-char *serialize_message(struct message *msg);
+char *serialize_message(int *msg_size, struct message *msg);
 
 /**
  * @brief Deserialize data and fill message.
