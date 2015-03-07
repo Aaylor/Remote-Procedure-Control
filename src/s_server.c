@@ -8,7 +8,7 @@ void loop_server(void){
     socklen_t len;
     int serv, client;
 
-    if ((serv = serv_tcpsock("localhost", AF_INET)) < 0){
+    if ((serv = serv_tcpsock("23456", AF_INET)) < 0){
         /*FIXME*/
         err(EXIT_FAILURE, "Error server\n");
     }
@@ -168,12 +168,22 @@ void read_msg(int client, struct message *msg){
 
 #ifndef UNIT_TEST
 
+int plus(int a, int b){
+    return a + b;
+}
+
 /**
  * @brief Entry point.
  * @return .
  */
 int main(void)
 {
+    struct function_mapper map;
+    fun_ptr_u ptr;
+    ptr.int_fun = &plus;
+    create_function(&map, "plus", RPC_TY_INT, ptr, 2, RPC_TY_INT, RPC_TY_INT);
+    add_function(&function_memory, map);
+    loop_server();
     return EXIT_SUCCESS;
 }
 

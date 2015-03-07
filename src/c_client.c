@@ -103,6 +103,11 @@ int sendCmd(struct message *msg){
  */
 int main(void)
 {
+    int ret;
+    int a = 1, b = 2;
+    external_call("plus", RPC_TY_INT, &ret, &a, RPC_TY_INT, &b, RPC_TY_INT);
+
+    external_call("moins", RPC_TY_INT, &ret, &a, RPC_TY_INT, &b, RPC_TY_INT);
     return EXIT_SUCCESS;
 }
 
