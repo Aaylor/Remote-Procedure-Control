@@ -154,12 +154,29 @@ void read_msg(int client, struct message *msg){
     if(recv(client, &size, sizeof(int), 0) < 0)
         err(EXIT_FAILURE, "Error recv\n");
 
+#ifdef DEBUGLOG
+    fprintf(stderr, "[%d] Message length: %d.\n", getpid(), size);
+#endif
+
     from = malloc((size+1)*sizeof(char));
 
     if(recv(client, from, size*sizeof(char), 0) < 0){
         free(from);
         err(EXIT_FAILURE, "Error recv2\n");
     }
+
+#ifdef DEBUGLOG
+    int cpt;
+
+    cpt = 0;
+    while (cpt < size) {
+        fprintf(stderr, "%d ", from[cpt]);
+        ++cpt;
+    }
+
+    fwrite_log(stderr, "Message received.");
+    __debug_display_serialized_message(from);
+#endif
 
     if(deserialize_message(msg, size, from) == -1)
         err(EXIT_FAILURE, "Err deserialize_message");
