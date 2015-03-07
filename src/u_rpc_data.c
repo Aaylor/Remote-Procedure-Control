@@ -22,6 +22,10 @@ int create_message(struct message *msg, const char *command, char return_type,
         int argc, struct rpc_arg *argv) {
     int cpt;
 
+#ifdef DEBUGLOG
+    fwrite_log(stderr, "--- BEGINNING OF create_message ---");
+#endif
+
     if (msg == NULL || command == NULL || !type_exists(return_type)) {
         return -1;
     }
@@ -82,7 +86,7 @@ int create_message(struct message *msg, const char *command, char return_type,
     }
 
 #ifdef DEBUGLOG
-    dwrite_log(STDERR_FILENO, "-- END OF create_message,ret 0 --");
+    fwrite_log(stderr, "-- END OF create_message,ret 0 --");
     __debug_display_message(msg);
 #endif
 
@@ -102,6 +106,10 @@ fail:
         }
         free(msg->argv);
     }
+
+#ifdef DEBUGLOG
+    fwrite_log(stderr, "-- END OF create_message (AS FAIL) --");
+#endif
 
     return -1;
 
@@ -248,6 +256,10 @@ char *serialize_message(struct message *msg) {
     char *serialized_msg;
     struct rpc_arg *arg;
 
+#ifdef DEBUGLOG
+    fwrite_log(stderr, "--- BEG OF SERIALIZE_MESSAGE ---");
+#endif
+
     if (msg == NULL) {
         return NULL;
     }
@@ -313,7 +325,7 @@ char *serialize_message(struct message *msg) {
     }
 
 #ifdef DEBUGLOG
-    dwrite_log(STDERR_FILENO, "-- END OF SERIALIZE --\n");
+    fwrite_log(stderr, "-- END OF SERIALIZE --\n");
     __debug_display_message(msg);
     __debug_display_serialized_message(serialized_msg);
 #endif
@@ -325,6 +337,10 @@ fail:
         free(serialized_msg);
     }
 
+#ifdef DEBUGLOG
+    fwrite_log(stderr, "-- END OF SERIALIZE (AS FAIL) --\n");
+#endif
+
     return NULL;
 }
 
@@ -333,6 +349,10 @@ int deserialize_message(struct message *msg, int size,
     int cpt, i;
     char tmp;
     struct rpc_arg *arg;
+
+#ifdef DEBUGLOG
+    fwrite_log(stderr," -- BEGINNING OF DESERIALIZATION --\n");
+#endif
 
     if (msg == NULL || serialized_msg == NULL) {
         return -1;
@@ -427,11 +447,16 @@ fail:
                 if (msg->argv[cpt].data != NULL) {
                     free(msg->argv[cpt].data);
                 }
+                ++cpt;
             }
 
             free(msg->argv);
         }
     }
+
+#ifdef DEBUGLOG
+    dwrite_log(STDERR_FILENO, "-- END OF DESERIALIZE MESSAGE (AS FAIL) --\n");
+#endif
 
     return -1;
 }
