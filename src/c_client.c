@@ -81,15 +81,16 @@ char data_size(int data_type, void *data){
 }
 
 int sendCmd(struct message *msg){
-    int clt = 0; // Client's socket filedescriptor
-    char *serial = serialize_message(msg);
+    int clt, size;
+
+    char *serial = serialize_message(&size, msg);
 
     if( (clt = clt_tcpsock("localhost", "23456", AF_INET))<0 ) {
         fprintf(stderr, "Unable to connect");
         return -1;
     }
 
-    send(clt, (void *)serial, strlen(serial), 0);
+    send(clt, (void *)serial, size, 0);
 
     free(serial);
     return clt;
