@@ -243,14 +243,18 @@ int deserialize_message(struct message *msg, int size,
 char *serialize_answer(int *msg_size, char status, struct rpc_arg *ret);
 
 /**
- * @brief Deserialize data and fill message.
- * @param msg the message to fill.
+ * @brief Deserialize data and fill the return structure.
+ * @param ret the return structure to fill.
  * @param size the message size, use to check if every data has been read.
- * @param serialized_msg the serialized data
- * @return the 
+ * @param serialized_ret the serialized data
+ * @return the return status. This value can be RPC_RET_OK if the operation
+ * was succesfull on the server side. In this case the value returned by the
+ * server is set in *ret*. If the return value is greater than 0,
+ * (RPC_RET_UNKOWN_FUNC, RPC_RET_WRONG_ARG, RPC_RET_NO_ANSWER,
+ * RPC_RET_WRONG_TYP), the operation was unsucessful on the serverside.
  */
-//int deserialize_message(struct message *ret, int size,
-        //const char *serialized_ret);
+int deserialize_answer(struct rpc_arg *ret, int size,
+        const char *serialized_ret);
 
 
 
