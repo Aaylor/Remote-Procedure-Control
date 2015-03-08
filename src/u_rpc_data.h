@@ -182,6 +182,8 @@ void free_message(struct message *msg);
 
 /**
  * @brief Serialize an integer into the given buffer.
+ * The serialisation write the size of the serialisezd interger
+ * and this integer in the giver buffer.
  * The buffer has to be size as the number of digits of i + 1.
  * @param i the number to serialize
  * @param buf the buffer where to serialize
@@ -229,15 +231,16 @@ int deserialize_message(struct message *msg, int size,
 
 /**
  * @brief Serialize the answer to be sent through sockets.
+ * This function allocates memory. The returning value has to be free.
+ * @param msg_size the stored size of the message
  * @param status The return status. Can be RPC_RET_OK, RPC_RET_UNKNOWN_FUNC,
  * RPC_RET_WRONG_ARG, RPC_RET_NO_ANSWER.
- * This function allocates memory which has to be freed.
  * @param ret the return value to serialize. Can be NULL and will not be used
  * when the return status is RPC_RET_UNKNOWN_FUNC, RPC_RET_WRONG_ARG,
  * RPC_RET_NO_ANSWER.
  * @return the serialized data.
  */
-//char *serialize_answer(char status, struct rpc_arg *ret);
+char *serialize_answer(int *msg_size, char status, struct rpc_arg *ret);
 
 /**
  * @brief Deserialize data and fill message.
