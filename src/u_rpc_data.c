@@ -545,11 +545,17 @@ int deserialize_answer(struct rpc_arg *ret, int size,
         /* Get back the return type */
         memcpy(&(ret->typ), serialized_ret + 1, sizeof(char));
 
-        if(ret->typ == RPC_TY_INT || ret->typ == RPC_TY_STR){
+        if(ret->typ == RPC_TY_INT){
+            ret->data = malloc(sizeof(int));
+            if(deserialize_integer(ret->data, serialized_ret + 2) < 0)
+                fprintf(stderr, "Can't deserialize the integer... \n");
+        }
+        else if(ret->typ == RPC_TY_STR){
             /* Get back data lenght */
             memcpy(&data_length, serialized_ret + 2, sizeof(char));
-            /* Get back data */
-            memcpy(&(ret->data), serialized_ret + 3, data_length);
+            ret->data = malloc(data_length + 1);
+            /* Get back the string */
+            strncpy(ret->data, serialized_ret + 3, data_length);
         }
         else
             ret->data = NULL;

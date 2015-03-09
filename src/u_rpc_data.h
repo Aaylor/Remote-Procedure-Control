@@ -244,6 +244,8 @@ char *serialize_answer(int *msg_size, char status, struct rpc_arg *ret);
 
 /**
  * @brief Deserialize data and fill the return structure.
+ * This function allocates memory to contain ret->data if the return value is
+ * a string or an int and it must be deallocated.
  * @param ret the return structure to fill.
  * @param size the message size, use to check if every data has been read.
  * @param serialized_ret the serialized data
