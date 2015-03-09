@@ -3,3 +3,4 @@ src/*.o
 .ycm_*
 doc/rpc
 *.utest
+src/s_function_handler.c

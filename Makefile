@@ -1,6 +1,7 @@
 UNAME = $(shell uname -s)
 
 CC=gcc -g
+PYTHON=python
 
 ifeq ($(DEBUG),1)
 	CFLAGS=-Wall -pedantic -std=c99 -D _POSIX_C_SOURCE=200112L -Werror -Wextra \
@@ -14,22 +15,27 @@ endif
 SRC=src/
 BIN=bin/
 
-SOURCES=$(wildcard $(SRC)*.c)
-OBJECTS=$(SOURCES:.c=.o)
+SOURCES = $(wildcard $(SRC)*.c)
+OBJECTS = $(SOURCES:.c=.o)
 
-TARGETS=$(BIN)client $(BIN)server
+TARGETS = $(BIN)client $(BIN)server
 
-UTIL_SOURCES=$(wildcard $(SRC)u_*.c)
-UTIL_OBJECTS=$(UTIL_SOURCES:.c=.o)
-UTIL_HEADERS=$(UTIL_SOURCES:.c=.h)
-UTIL_UNIT_TEST=tests/check_utils
+GEN_SCRIPT = ext/pump.py
+GENERATION = $(wildcard $(SRC)*.c.pump)
+GENERATED  = $(GENERATION:.pump=)
 
-CLIENT_SOURCES=$(wildcard $(SRC)c_*.c)
-CLIENT_OBJECTS=$(CLIENT_SOURCES:.c=.o)
+UTIL_SOURCES   = $(wildcard $(SRC)u_*.c)
+UTIL_OBJECTS   = $(UTIL_SOURCES:.c=.o)
+UTIL_HEADERS   = $(UTIL_SOURCES:.c=.h)
+UTIL_UNIT_TEST = tests/check_utils
 
-SERVER_SOURCES=$(wildcard $(SRC)s_*.c)
-SERVER_OBJECTS=$(SERVER_SOURCES:.c=.o)
-SERVER_UNIT_TEST=tests/check_server
+CLIENT_SOURCES = $(wildcard $(SRC)c_*.c)
+CLIENT_OBJECTS = $(CLIENT_SOURCES:.c=.o)
+
+# FIXME: find a way to allow generation everywhere
+SERVER_SOURCES   = $(wildcard $(SRC)s_*.c) $(GENERATED)
+SERVER_OBJECTS   = $(SERVER_SOURCES:.c=.o)
+SERVER_UNIT_TEST = tests/check_server
 
 
 
@@ -56,9 +62,17 @@ DOC_FOLDER=doc/rpc
 
 #=-=-=-=-=-=-=-=- Dependencies -=-=--=-=-=-=-=-=-=#
 
-.PHONY: all doc doc-clean libs-clean clean tests
+.PHONY: all doc doc-clean generate libs-clean clean tests
 
-all: libs $(TARGETS)
+all: libs generate $(TARGETS)
+
+generate: $(GENERATED)
+	@ echo "Generating some files... (can take a while)"
+	@ for pump_file in $(GENERATION); do				\
+		printf "Generation of $$pump_file ";		\
+		$(PYTHON) $(GEN_SCRIPT) $$pump_file;		\
+		[[ "$$?" = "0" ]] && echo "✓" || echo "✗";	\
+	done
 
 libs: $(LIBNET_DYN)
 
