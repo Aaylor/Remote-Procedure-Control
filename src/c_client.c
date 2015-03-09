@@ -19,7 +19,7 @@ int external_call(const char *cmd, int type, void *ret, ...){
     va_list ap;
 
     /* Arguments */
-    int i = 0;
+    int i = 0, succes = 0;
     void *arg = NULL;
     struct rpc_arg *args = NULL;
     struct message msg;
@@ -36,7 +36,10 @@ int external_call(const char *cmd, int type, void *ret, ...){
     va_end(ap);
 
     /* Generate an argument tab */
-    args = malloc(nb_args * sizeof(struct rpc_arg));
+    if( (args = malloc(nb_args * sizeof(struct rpc_arg))) == NULL){
+        fprintf(stderr, "Can't allocate memory... \n");
+        return -1;
+    }
     va_start(ap, ret);
     for(arg = va_arg(ap, void *); arg != NULL; arg = va_arg(ap, void *)){
         args[i].data = arg;
@@ -48,37 +51,23 @@ int external_call(const char *cmd, int type, void *ret, ...){
     /* Generate the message */
     create_message(&msg, cmd, type, nb_args, args);
 
-    if( (clt = sendCmd(&msg)) < 0)
-        return -1;
+    if( (clt = sendCmd(&msg)) < 0){
+        succes = -1;
+        goto external_call_free;
+    }
 
+    if(getAnswer(clt, type, ret) < 0)
+        succes = -1;
+
+    close(clt);
+
+  external_call_free :
     free_message(&msg);
     free(args);
 
-    return 0;
+    return succes;
 }
 
-char data_size(int data_type, void *data){
-    int res = 0, t;
-    char *tmp;
-    switch(data_type){
-        case RPC_TY_VOID:
-            return 0;
-        case RPC_TY_INT:
-            t=10;
-            while(*((int *)data)/t>0){
-                res++;
-                t*=10;
-            }
-            return res;
-        case RPC_TY_STR:
-            tmp = (char*)data;
-            while(tmp++ != '\0')
-                res++;
-            return res;
-        default:
-            return -1;
-    }
-}
 
 int sendCmd(struct message *msg){
     int clt, size;
@@ -86,14 +75,106 @@ int sendCmd(struct message *msg){
     char *serial = serialize_message(&size, msg);
 
     if( (clt = clt_tcpsock("localhost", "23456", AF_INET))<0 ) {
-        fprintf(stderr, "Unable to connect");
+        fprintf(stderr, "Unable to connect... \n");
+        clt =  -1;
+        goto endSendCmd;
+    }
+
+    if( send(clt, (void *)serial, size, 0) < 0) {
+        fprintf(stderr, "Unable send the request... \n");
+        close(clt);
+        clt = -1;
+    }
+
+  endSendCmd:
+    free(serial);
+    return clt;
+}
+
+
+int getAnswer(int clt, int type, void *ret){
+    int msg_size, status, succes = 0;
+    char *msg;
+    struct rpc_arg ret_arg;
+
+    /* Get back the message size to read */
+    if(recv(clt, &msg_size, sizeof(int), 0) < 0){
+        fprintf(stderr, "Unable to receive the message size... \n");
         return -1;
     }
 
-    send(clt, (void *)serial, size, 0);
+    if( (msg = malloc(msg_size)) == NULL){
+        fprintf(stderr, "Can't allocate memory... \n");
+        return -1;
+    }
 
-    free(serial);
-    return clt;
+    /* Get back the return value */
+    if(recv(clt, msg, msg_size, 0) < 0){
+        fprintf(stderr, "Unable to receive the return value... \n");
+        succes = -1;
+        goto endGetAnswer;
+    }
+
+    status = deserialize_answer(&ret_arg, msg_size, msg);
+
+    /* In case of error from the server */
+    if(status != RPC_RET_OK){
+        printErrorStatus(status);
+        succes = -1;
+        goto desalocateRetArg;
+    }
+
+    /* Type checking */
+    if(ret_arg.typ != type){
+        printErrorStatus(RPC_RET_WRONG_TYP);
+        succes = -1;
+        goto desalocateRetArg;
+    }
+
+    switch(ret_arg.typ){
+        case RPC_TY_VOID:
+            ret = NULL;
+            break;
+        case RPC_TY_STR:
+            strcpy(ret, ret_arg.data);
+            break;
+        case RPC_TY_INT:
+            *(int *)ret = *(int *)ret_arg.data;
+            break;
+        default:
+            assert(0); /* By deserialisation_answer */
+    }
+
+  desalocateRetArg:
+    free(ret_arg.data);
+  endGetAnswer:
+    free(msg);
+    return succes;
+}
+
+
+
+void printErrorStatus(int status){
+    switch(status){
+        case RPC_RET_OK:
+            assert(0); /* By getAnswer */
+            break;
+        case RPC_RET_UNKNOWN_FUNC:
+            fprintf(stderr, "The server doesn't knwow this function... \n");
+            break;
+        case RPC_RET_WRONG_ARG:
+            fprintf(stderr, "The given arguments were wrong... \n");
+            break;
+        case RPC_RET_NO_ANSWER:
+            fprintf(stderr, "The execution of the function gives no answer... \n");
+            break;
+        case RPC_RET_WRONG_TYP:
+            fprintf(stderr, "The return type expected was wrong... \n");
+            break;
+        default:
+            fprintf(stderr, "The server has encountered an inexpected error... \n");
+            break;
+    }
 }
 
 #ifndef UNIT_TEST
