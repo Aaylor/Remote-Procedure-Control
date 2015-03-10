@@ -1,6 +1,9 @@
 
 let handle () =
   let open Unix in
+
+  if not @@ Sys.(file_exists argv.(1)) then exit 1;
+
   let stat_f1 = stat Sys.argv.(1) in
   let stat_f2 = stat Sys.argv.(2) in
 

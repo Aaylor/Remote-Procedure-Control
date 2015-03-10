@@ -66,7 +66,7 @@ DOC_FOLDER=doc/rpc
 
 all: libs generate $(TARGETS)
 
-generate: $(GENERATED)
+generate:
 	@ echo "Generating some files... (can take a while)"
 	@ for pump_file in $(GENERATION); do				\
 		printf "Generation of $$pump_file ";		\
