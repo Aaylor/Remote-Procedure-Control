@@ -70,8 +70,13 @@ generate: $(GENERATED)
 	@ echo "Generating some files... (can take a while)"
 	@ for pump_file in $(GENERATION); do				\
 		printf "Generation of $$pump_file ";		\
-		$(PYTHON) $(GEN_SCRIPT) $$pump_file;		\
-		[[ "$$?" = "0" ]] && echo "✓" || echo "✗";	\
+		ocaml unix.cma ext/check_date.ml $${pump_file%.pump} $$pump_file; \
+		if [[ "$$?" = "0" ]]; then \
+			echo "✓ (already updated)"; \
+		else \
+			$(PYTHON) $(GEN_SCRIPT) $$pump_file;		\
+			[[ "$$?" = "0" ]] && echo "✓" || echo "✗";	\
+		fi; \
 	done
 
 libs: $(LIBNET_DYN)
