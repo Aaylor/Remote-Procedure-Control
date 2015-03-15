@@ -34,6 +34,7 @@ void gestion_client(int client){
 void execute_client(int client){
     struct message msg;
     struct function_mapper *function;
+    void *ret=NULL;
 
     fwrite_log(stderr, "Reading client message.");
     read_msg(client, &msg);
@@ -43,6 +44,9 @@ void execute_client(int client){
 
     fwrite_log(stderr, "Function verification.");
     verification_function(client, function, &msg);
+
+    fwrite_log(stderr, "Function execution.");
+    execute_function(client, ret, &function->fun, &msg);
 }
 
 void execute_function(int client, void *return_t, struct function_t *function, struct message *msg){
@@ -113,6 +117,10 @@ void execute_function(int client, void *return_t, struct function_t *function, s
     }
 }
 
+/*void send_answer(int client, void *ret){
+
+}*/
+
 void verification_function(int client, struct function_mapper *f, struct message *msg){
     int i;
     if(f->fun.argc != msg->argc)
@@ -141,8 +149,11 @@ struct function_mapper *search_function(int client, struct message *msg){
 
 }
 
-void send_error(int client, int i){
-    if(send(client, &i, sizeof(int), 0) < 0)
+void send_error(int client, char c){
+    int size;
+    char *msg;
+    msg = serialize_answer(&size, c, NULL);
+    if(send(client, msg, size, 0) < 0)
         err(EXIT_FAILURE, "error fail to send");
     exit(EXIT_SUCCESS);
 }

@@ -66,7 +66,7 @@ struct function_mapper *search_function(int client, struct message *msg);
  * @param client The socket client on which we are connected.
  * @param i The integer which represents the type error expected.
  */
-void send_error(int client, int i);
+void send_error(int client, char c);
 
 /**
  * @brief read a message in the client socket and save that in the msg param.
