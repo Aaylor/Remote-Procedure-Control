@@ -69,6 +69,14 @@ struct function_mapper *search_function(int client, struct message *msg);
 void send_error(int client, char c);
 
 /**
+ * @brief Function taking a client and send him the return message.
+ * @param client The socket client on which we are connected.
+ * @param ret The message representing the return value.
+ * @param size The size of the message.
+ */
+void send_answer(int client, char *ret, int size);
+
+/**
  * @brief read a message in the client socket and save that in the msg param.
  * @param client The socket client on which we are connected.
  * @param msg The message on which the data read is saved.
@@ -83,7 +91,7 @@ void read_msg(int client, struct message *msg);
  * @param function The function that we want to execute.
  * @param msg The message given by the client including all of the argument.
  */
-void execute_function(int client, void *return_t, struct function_t *function, struct message *msg);
+void execute_function(int client, char **return_t, int *size, struct function_t *function, struct message *msg);
 
 #endif /* SERVER_H */
 

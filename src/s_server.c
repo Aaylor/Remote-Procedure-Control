@@ -34,7 +34,8 @@ void gestion_client(int client){
 void execute_client(int client){
     struct message msg;
     struct function_mapper *function;
-    void *ret=NULL;
+    int size;
+    char *ret=NULL;
 
     fwrite_log(stderr, "Reading client message.");
     read_msg(client, &msg);
@@ -46,34 +47,41 @@ void execute_client(int client){
     verification_function(client, function, &msg);
 
     fwrite_log(stderr, "Function execution.");
-    execute_function(client, ret, &function->fun, &msg);
+    execute_function(client, &ret, &size, &function->fun, &msg);
+
+    fwrite_log(stderr, "Send client return");
+    send_answer(client, ret, size);
+
+    free(ret);
+    close(client);
+    exit(EXIT_SUCCESS);
 }
 
-void execute_function(int client, void *return_t, struct function_t *function, struct message *msg){
+void execute_function(int client, char **return_t, int *size, struct function_t *function, struct message *msg){
     int res;
+    struct rpc_arg args;
     /*char *str;*/
     switch(msg->return_type){
         case RPC_TY_VOID:
             switch(msg->argc){
                 case 0:
                     function->fun_ptr.void_fun();
-                    return_t = NULL;
                     break;
                 case 1:
                     function->fun_ptr.void_fun(function->argv[0]);
-                    return_t = NULL;
                     break;
                 case 2:
                     function->fun_ptr.void_fun(function->argv[0], function->argv[1]);
-                    return_t = NULL;
                     break;
                 case 3:
                     function->fun_ptr.void_fun(function->argv[0], function->argv[1], function->argv[2]);
-                    return_t = NULL;
                     break;
                 default:
                     send_error(client, RPC_WRONG_NUMBER_ARGS);
             }
+            args.typ = RPC_TY_VOID;
+            args.data = NULL;
+            *return_t = serialize_answer(size, RPC_RET_OK, &args);
             break;
         case RPC_TY_INT:
             switch(msg->argc){
@@ -92,7 +100,10 @@ void execute_function(int client, void *return_t, struct function_t *function, s
                 default:
                     send_error(client, RPC_WRONG_NUMBER_ARGS);
             }
-            memcpy(&return_t, &res, sizeof(int));
+            args.typ = RPC_TY_INT;
+            args.data = malloc(sizeof(int));
+            memcpy(args.data, &res, sizeof(int));
+            *return_t = serialize_answer(size, RPC_RET_OK, &args);
             break;
         /*case RPC_TY_STR:
             switch(msg->argc){
@@ -117,9 +128,11 @@ void execute_function(int client, void *return_t, struct function_t *function, s
     }
 }
 
-/*void send_answer(int client, void *ret){
-
-}*/
+void send_answer(int client, char *ret, int size){
+    if(send(client, ret, size, 0) < 0)
+        err(EXIT_FAILURE, "error fail to send");
+    exit(EXIT_SUCCESS);
+}
 
 void verification_function(int client, struct function_mapper *f, struct message *msg){
     int i;
