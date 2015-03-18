@@ -3,6 +3,31 @@
 
 #include "s_server.h"
 
+int current_client = -1;
+
+void timeout_handler(int sig) {
+    fprintf(stderr, "[%d] Timeout (%d) at client %d.\n",
+            getpid(), sig, current_client);
+    send_error(current_client, RPC_RET_NO_ANSWER);
+}
+
+void set_timeout(int seconds) {
+    fprintf(stderr, "[%d] Timeout set to %d seconds.\n", getpid(), seconds);
+    struct itimerval val;
+
+    val.it_interval.tv_sec  = 0;
+    val.it_interval.tv_usec = 0;
+    val.it_value.tv_sec  = seconds;
+    val.it_value.tv_usec = 0;
+
+    if (setitimer(ITIMER_REAL, &val, NULL) < 0) {
+        fprintf(stderr, "[%d] Fail to set timer...\n", getpid());
+        return;
+    }
+
+    signal(SIGALRM, &timeout_handler);
+}
+
 void loop_server(void){
     struct sockaddr addr;
     socklen_t len;
@@ -28,6 +53,9 @@ void loop_server(void){
 }
 
 void gestion_client(int client){
+    current_client = client;
+    set_timeout(5);
+    while(1);
     execute_client(client);
 }
 
