@@ -121,7 +121,7 @@ int getAnswer(int clt, int type, void *ret){
     if(status != RPC_RET_OK){
         printErrorStatus(status);
         succes = -1;
-        goto desalocateRetArg;
+        goto endGetAnswer;
     }
 
     /* Type checking */
@@ -134,7 +134,6 @@ int getAnswer(int clt, int type, void *ret){
     switch(ret_arg.typ){
         case RPC_TY_VOID:
             ret = NULL;
-            break;
         case RPC_TY_STR:
             strcpy(ret, ret_arg.data);
             break;
@@ -146,7 +145,8 @@ int getAnswer(int clt, int type, void *ret){
     }
 
   desalocateRetArg:
-    free(ret_arg.data);
+    if(ret_arg.typ == RPC_TY_INT || ret_arg.typ == RPC_TY_STR)
+        free(ret_arg.data);
   endGetAnswer:
     free(msg);
     return succes;
@@ -185,9 +185,10 @@ void printErrorStatus(int status){
  */
 int main(void)
 {
-    int ret;
+    int ret = 1;
     int a = 1, b = 2;
     external_call("plus", RPC_TY_INT, &ret, &a, RPC_TY_INT, &b, RPC_TY_INT);
+    printf("%d\n", ret);
 
     external_call("moins", RPC_TY_INT, &ret, &a, RPC_TY_INT, &b, RPC_TY_INT);
     return EXIT_SUCCESS;
