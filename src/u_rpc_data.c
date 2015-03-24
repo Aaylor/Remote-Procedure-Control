@@ -497,7 +497,11 @@ char *serialize_answer(int *msg_size, char status, struct rpc_arg *ret){
 
     message_length = sizeof(char) + data_size;
     *msg_size = sizeof(int) + message_length;
+
     data = malloc(*msg_size);
+    if (data == NULL) {
+        return NULL;
+    }
 
     if(status == RPC_RET_OK) {
 
@@ -508,10 +512,10 @@ char *serialize_answer(int *msg_size, char status, struct rpc_arg *ret){
         }
 
         /* Data completion */
-        if(status == RPC_TY_INT){
+        if(ret->typ == RPC_TY_INT){
             serialize_integer(*(int *)ret->data, data + sizeof(int) + 2);
         }
-        else if(status == RPC_TY_STR){
+        else if(ret->typ == RPC_TY_STR){
             str_size = data_size - 2;
             memcpy(data + sizeof(int) + 3, ret->data, str_size);
             memcpy(data + sizeof(int) + 2, &str_size, sizeof(char));
@@ -525,6 +529,10 @@ char *serialize_answer(int *msg_size, char status, struct rpc_arg *ret){
 
     /* Message length */
     memcpy(data, &message_length, sizeof(int));
+
+#ifdef DEBUGLOG
+    __debug_display_serialized_answer(data);
+#endif
 
     return data;
 }
@@ -632,6 +640,30 @@ void __debug_display_serialized_message(const char *serialized_msg) {
         ++cpt;
     }
     fprintf(stderr, "\n");
+}
+
+void __debug_display_serialized_answer(const char *serialized_answer) {
+    int cpt, message_length;
+    const char *msg;
+
+    fprintf(stderr, "\n\n== DEBUGLOG: display serialized answer ==\n");
+
+    if (serialized_answer == NULL) {
+        fprintf(stderr, "serialized answer is NULL.\n");
+        return;
+    }
+
+    memcpy(&message_length, serialized_answer, sizeof(int));
+    fprintf(stderr, "size: %d\n", message_length);
+
+    cpt = 0;
+    msg = serialized_answer + sizeof(int);
+    while (cpt < message_length) {
+        fprintf(stderr, "%d ", msg[cpt]);
+        ++cpt;
+    }
+    fprintf(stderr, "\n");
+    fprintf(stderr, "== END OF serialized answer ==\n\n");
 }
 
 #endif

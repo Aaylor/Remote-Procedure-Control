@@ -275,6 +275,12 @@ void __debug_display_message(struct message *msg);
  */
 void __debug_display_serialized_message(const char *serialized_msg);
 
+/**
+ * @brief Log the serialized answer into error output.
+ * @param serialized_answer the serialized message.
+ */
+void __debug_display_serialized_answer(const char *serialized_answer);
+
 #endif
 
 
