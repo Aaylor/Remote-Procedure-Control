@@ -185,7 +185,7 @@ void printErrorStatus(int status){
  */
 int main(void)
 {
-    int ret = 1;
+    int ret = 0;
     int a = 1, b = 2;
     external_call("plus", RPC_TY_INT, &ret, &a, RPC_TY_INT, &b, RPC_TY_INT);
     printf("%d\n", ret);

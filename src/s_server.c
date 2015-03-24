@@ -1,7 +1,19 @@
 
+/**
+ * @file s_server.c
+ * @brief Main file to handle server
+ * @author Tortrat-Gentilhomme Nicolas
+ * @author Raymond Nicolas
+ * @author Runarvot Loïc
+ * @version 0.1
+ * @date 2015-02-09
+ */
+
+
 #include <stdlib.h>
 
 #include "s_server.h"
+
 
 int current_client = -1;
 
@@ -55,7 +67,6 @@ void loop_server(void){
 void gestion_client(int client){
     current_client = client;
     set_timeout(5);
-    while(1);
     execute_client(client);
 }
 
@@ -235,17 +246,6 @@ void read_msg(int client, struct message *msg){
 
     free(from);
 }
-
-/**
- * @file s_server.c
- * @brief Main file to handle server
- * @author Tortrat-Gentilhomme Nicolas
- * @author Raymond Nicolas
- * @author Runarvot Loïc
- * @version 0.1
- * @date 2015-02-09
- */
-
 
 #ifndef UNIT_TEST
 
