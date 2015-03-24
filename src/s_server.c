@@ -52,9 +52,11 @@ void loop_server(void){
 
     while(1){
         fwrite_log(stderr, "Waiting client.");
-        if ((client=accept(serv, &addr, &len)) < 0)
-            /*FIXME*/
-            perror("Error accept client\n");
+        if ((client=accept(serv, &addr, &len)) < 0) {
+            fprintf(stderr, "[%d] Error on accept client: %s\n",
+                        getpid(), strerror(errno));
+        }
+
         fwrite_log(stderr, "Client accepted.");
         if(fork()==0){
             fwrite_log(stderr, "New process: handling client.");
@@ -88,7 +90,7 @@ void execute_client(int client){
     fwrite_log(stderr, "Function execution.");
     execute_function(client, &ret, &size, &function->fun, &msg);
 
-    fwrite_log(stderr, "Send client return");
+    fwrite_log(stderr, "Send answer to client.");
     send_answer(client, ret, size);
 
     free(ret);
@@ -97,8 +99,12 @@ void execute_client(int client){
 }
 
 void send_answer(int client, char *ret, int size){
-    if(send(client, ret, size, 0) < 0)
-        err(EXIT_FAILURE, "error fail to send");
+    if(send(client, ret, size, 0) < 0) {
+        fprintf(stderr, "[%d] Error on sending answer. Shutdown the service. (%s)\n",
+                getpid(), strerror(errno));
+        exit(EXIT_FAILURE);
+    }
+
     exit(EXIT_SUCCESS);
 }
 
@@ -143,8 +149,12 @@ void read_msg(int client, struct message *msg){
     int size;
     char *from;
 
-    if(recv(client, &size, sizeof(int), 0) < 0)
-        err(EXIT_FAILURE, "Error recv\n");
+    if(recv(client, &size, sizeof(int), 0) < 0) {
+        fprintf(stderr, "[%d] %s (%s)\n", getpid(),
+                    "Error on receiving the message size.",
+                    strerror(errno));
+        exit(EXIT_FAILURE);
+    }
 
 #ifdef DEBUGLOG
     fprintf(stderr, "[%d] Message length: %d.\n", getpid(), size);
@@ -152,9 +162,12 @@ void read_msg(int client, struct message *msg){
 
     from = malloc((size+1)*sizeof(char));
 
-    if(recv(client, from, size*sizeof(char), 0) < 0){
+    if(recv(client, from, size*sizeof(char), 0) < 0) {
         free(from);
-        err(EXIT_FAILURE, "Error recv2\n");
+        fprintf(stderr, "[%d] %s (%s)\n", getpid(),
+                    "Error on receiving the message.",
+                    strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
 #ifdef DEBUGLOG
@@ -162,8 +175,11 @@ void read_msg(int client, struct message *msg){
     __debug_display_serialized_message(from);
 #endif
 
-    if(deserialize_message(msg, size, from) == -1)
-        err(EXIT_FAILURE, "Err deserialize_message");
+    if(deserialize_message(msg, size, from) == -1) {
+        fprintf(stderr, "[%d] %s\n", getpid(),
+                    "Error on deserialize the message. Killing the process.");
+        exit(EXIT_FAILURE);
+    }
 
     free(from);
 }
