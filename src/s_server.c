@@ -131,7 +131,9 @@ void execute_function(int client, char **return_t, int *size, struct function_t 
                     res = function->fun_ptr.int_fun(function->argv[0]);
                     break;
                 case 2:
-                    res = function->fun_ptr.int_fun(function->argv[0], function->argv[1]);
+                    res = function->fun_ptr.int_fun(*(int *)msg->argv[0].data,
+                            *(int *)msg->argv[1].data);
+                    printf("res: %d\n", res);
                     break;
                 case 3:
                     res = function->fun_ptr.int_fun(function->argv[0], function->argv[1], function->argv[2]);
@@ -229,14 +231,6 @@ void read_msg(int client, struct message *msg){
     }
 
 #ifdef DEBUGLOG
-    int cpt;
-
-    cpt = 0;
-    while (cpt < size) {
-        fprintf(stderr, "%d ", from[cpt]);
-        ++cpt;
-    }
-
     fwrite_log(stderr, "Message received.");
     __debug_display_serialized_message(from);
 #endif
