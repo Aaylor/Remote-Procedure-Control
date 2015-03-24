@@ -1,0 +1,85 @@
+
+#include "s_function_handler.h"
+#
+void execute_function(int client, char **return_t,
+        int *size, struct function_t *function, struct message *msg){
+
+    int res;
+    struct rpc_arg args;
+
+    switch(msg->return_type){
+
+        case RPC_TY_VOID:
+            switch(msg->argc){
+
+            $range i 0..5
+            $for i [[
+
+                $range j 1..i
+                case $i:
+                    function->fun_ptr.void_fun($for j, [[ msg->argv[$(j - 1)].data ]]);
+                    break;
+
+            ]]
+
+                default:
+                    send_error(client, RPC_WRONG_NUMBER_ARGS);
+
+            }
+
+            args.typ = RPC_TY_VOID;
+            args.data = NULL;
+            *return_t = serialize_answer(size, RPC_RET_OK, &args);
+            break;
+
+        case RPC_TY_INT:
+            switch(msg->argc){
+
+            $range i 0..5
+            $for i [[
+
+                $range j 1..i
+                case $i:
+                    res = function->fun_ptr.int_fun($for j , [[ msg->argv[$(j - 1)].data ]]);
+                    break;
+
+            ]]
+
+                default:
+                    send_error(client, RPC_WRONG_NUMBER_ARGS);
+
+            }
+
+            args.typ = RPC_TY_INT;
+            args.data = malloc(sizeof(int));
+            memcpy(args.data, &res, sizeof(int));
+            *return_t = serialize_answer(size, RPC_RET_OK, &args);
+            break;
+
+        case RPC_TY_STR:
+            switch(msg->argc){
+
+            $range i 0..5
+            $for i [[
+
+                $range j 1..i
+                case $i:
+                    args.data = function->fun_ptr.str_fun($for j , [[ msg->argv[$(j - 1)].data ]]);
+                    break;
+
+            ]]
+
+                default:
+                    send_error(client, RPC_WRONG_NUMBER_ARGS);
+
+            }
+
+            args.typ = RPC_TY_STR;
+            *return_t = serialize_answer(size, RPC_RET_OK, &args);
+            break;
+
+        default :
+            send_error(client, RPC_RET_UNKNOWN_FUNC);
+    }
+}
+

@@ -24,6 +24,7 @@
 #include "u_log.h"
 #include "u_rpc_data.h"
 #include "s_mapper.h"
+#include "s_function_handler.h"
 
 #define BUFF 256
 
@@ -85,16 +86,6 @@ void send_answer(int client, char *ret, int size);
  * @param msg The message on which the data read is saved.
  */
 void read_msg(int client, struct message *msg);
-
-/**
- * @brief Take the client a message and a function mapper, and execute the
- * function writing the return in the return_t variable.
- * @param client The socket client on which we are connected.
- * @param return_t The value return by the function executed.
- * @param function The function that we want to execute.
- * @param msg The message given by the client including all of the argument.
- */
-void execute_function(int client, char **return_t, int *size, struct function_t *function, struct message *msg);
 
 #endif /* SERVER_H */
 

@@ -96,79 +96,6 @@ void execute_client(int client){
     exit(EXIT_SUCCESS);
 }
 
-void execute_function(int client, char **return_t, int *size, struct function_t *function, struct message *msg){
-    int res;
-    struct rpc_arg args;
-    /*char *str;*/
-    switch(msg->return_type){
-        case RPC_TY_VOID:
-            switch(msg->argc){
-                case 0:
-                    function->fun_ptr.void_fun();
-                    break;
-                case 1:
-                    function->fun_ptr.void_fun(function->argv[0]);
-                    break;
-                case 2:
-                    function->fun_ptr.void_fun(function->argv[0], function->argv[1]);
-                    break;
-                case 3:
-                    function->fun_ptr.void_fun(function->argv[0], function->argv[1], function->argv[2]);
-                    break;
-                default:
-                    send_error(client, RPC_WRONG_NUMBER_ARGS);
-            }
-            args.typ = RPC_TY_VOID;
-            args.data = NULL;
-            *return_t = serialize_answer(size, RPC_RET_OK, &args);
-            break;
-        case RPC_TY_INT:
-            switch(msg->argc){
-                case 0:
-                    res = function->fun_ptr.int_fun();
-                    break;
-                case 1:
-                    res = function->fun_ptr.int_fun(function->argv[0]);
-                    break;
-                case 2:
-                    res = function->fun_ptr.int_fun(*(int *)msg->argv[0].data,
-                            *(int *)msg->argv[1].data);
-                    printf("res: %d\n", res);
-                    break;
-                case 3:
-                    res = function->fun_ptr.int_fun(function->argv[0], function->argv[1], function->argv[2]);
-                    break;
-                default:
-                    send_error(client, RPC_WRONG_NUMBER_ARGS);
-            }
-            args.typ = RPC_TY_INT;
-            args.data = malloc(sizeof(int));
-            memcpy(args.data, &res, sizeof(int));
-            *return_t = serialize_answer(size, RPC_RET_OK, &args);
-            break;
-        /*case RPC_TY_STR:
-            switch(msg->argc){
-                case 0:
-                    return_t = &(function->fun_ptr.str_fun());
-                    break;
-                case 1:
-                    return_t = &(function->fun_ptr.str_fun(function->argv[0]));
-                    break;
-                case 2:
-                    return_t = &(function->fun_ptr.str_fun(function->argv[0], function->argv[1]));
-                    break;
-                case 3:
-                    return_t = &(function->fun_ptr.str_fun(function->argv[0], function->argv[1], function->argv[2]));
-                    break;
-                default:
-                    send_error(client, RPC_WRONG_NUMBER_ARGS);
-            }
-            break;*/
-        default :
-            send_error(client, RPC_RET_UNKNOWN_FUNC);
-    }
-}
-
 void send_answer(int client, char *ret, int size){
     if(send(client, ret, size, 0) < 0)
         err(EXIT_FAILURE, "error fail to send");
@@ -243,8 +170,8 @@ void read_msg(int client, struct message *msg){
 
 #ifndef UNIT_TEST
 
-int plus(int a, int b){
-    return a + b;
+int plus(int *a, int *b){
+    return *a + *b;
 }
 
 /**
