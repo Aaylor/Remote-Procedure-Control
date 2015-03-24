@@ -22,23 +22,13 @@ int create_message(struct message *msg, const char *command, char return_type,
         int argc, struct rpc_arg *argv) {
     int cpt;
 
-#ifdef DEBUGLOG
-    fwrite_log(stderr, "--- BEGINNING OF create_message ---");
-#endif
-
     if (msg == NULL || command == NULL || !type_exists(return_type)) {
-#ifdef DEBUGLOG
-        fwrite_log(stderr, "wrong parameters.");
-#endif
         return -1;
     }
 
     msg->command_length = strlen(command);
     msg->command = malloc(msg->command_length + 1);
     if (msg->command == NULL) {
-#ifdef DEBUGLOG
-        fwrite_log(stderr, "allocation has failed.");
-#endif
         goto fail;
     }
     strcpy(msg->command, command);
@@ -92,7 +82,6 @@ int create_message(struct message *msg, const char *command, char return_type,
     }
 
 #ifdef DEBUGLOG
-    fwrite_log(stderr, "-- END OF create_message,ret 0 --");
     __debug_display_message(msg);
 #endif
 
@@ -112,10 +101,6 @@ fail:
         }
         free(msg->argv);
     }
-
-#ifdef DEBUGLOG
-    fwrite_log(stderr, "-- END OF create_message (AS FAIL) --");
-#endif
 
     return -1;
 
@@ -262,10 +247,6 @@ char *serialize_message(int *msg_size, struct message *msg) {
     char *serialized_msg;
     struct rpc_arg *arg;
 
-#ifdef DEBUGLOG
-    fwrite_log(stderr, "--- BEG OF SERIALIZE_MESSAGE ---");
-#endif
-
     if (msg == NULL) {
         return NULL;
     }
@@ -275,9 +256,6 @@ char *serialize_message(int *msg_size, struct message *msg) {
 
     serialized_msg = malloc(size + sizeof(int));
     if (serialized_msg == NULL) {
-#ifdef DEBUGLOG
-        fwrite_log(stderr, "allocation has failed.");
-#endif
         goto fail;
     }
 
@@ -334,8 +312,6 @@ char *serialize_message(int *msg_size, struct message *msg) {
     }
 
 #ifdef DEBUGLOG
-    fwrite_log(stderr, "-- END OF SERIALIZE --\n");
-    __debug_display_message(msg);
     __debug_display_serialized_message(serialized_msg);
 #endif
 
@@ -347,10 +323,6 @@ fail:
         free(serialized_msg);
     }
 
-#ifdef DEBUGLOG
-    fwrite_log(stderr, "-- END OF SERIALIZE (AS FAIL) --\n");
-#endif
-
     return NULL;
 }
 
@@ -359,10 +331,6 @@ int deserialize_message(struct message *msg, int size,
     int cpt, i;
     char tmp;
     struct rpc_arg *arg;
-
-#ifdef DEBUGLOG
-    fwrite_log(stderr," -- BEGINNING OF DESERIALIZATION --\n");
-#endif
 
     if (msg == NULL || serialized_msg == NULL) {
         return -1;
@@ -374,9 +342,6 @@ int deserialize_message(struct message *msg, int size,
 
     msg->command = malloc(msg->command_length + 1);
     if (msg->command == NULL) {
-#ifdef DEBUGLOG
-        fwrite_log(stderr, "\"msg->command\": allocation has failed.");
-#endif
         goto fail;
     }
     memcpy(msg->command, serialized_msg + cpt, msg->command_length);
@@ -392,9 +357,6 @@ int deserialize_message(struct message *msg, int size,
     if (msg->argc > 0) {
         msg->argv = malloc(msg->argc * sizeof(struct rpc_arg));
         if(msg->argv == NULL) {
-#ifdef DEBUGLOG
-            fwrite_log(stderr, "\"msg->argv\": allocation has failed.");
-#endif
             goto fail;
         }
     } else {
@@ -416,9 +378,6 @@ int deserialize_message(struct message *msg, int size,
             case RPC_TY_INT:
                 arg->data = malloc(sizeof(int));
                 if (arg->data == NULL) {
-#ifdef DEBUGLOG
-                    fwrite_log(stderr, "\"INT arg->data\": allocation has failed.");
-#endif
                     goto fail;
                 }
 
@@ -431,9 +390,6 @@ int deserialize_message(struct message *msg, int size,
 
                 arg->data = malloc(tmp * sizeof(char) + 1);
                 if (arg->data == NULL) {
-#ifdef DEBUGLOG
-                    fwrite_log(stderr, "\"STR arg->data\": allocation has failed.");
-#endif
                     goto fail;
                 }
 
@@ -443,9 +399,6 @@ int deserialize_message(struct message *msg, int size,
                 break;
 
             default:
-#ifdef DEBUGLOG
-                fwrite_log(stderr, "arg: wrong type.");
-#endif
                 goto fail;
         }
 
@@ -453,8 +406,6 @@ int deserialize_message(struct message *msg, int size,
     }
 
 #ifdef DEBUGLOG
-    dwrite_log(STDERR_FILENO, "-- END OF DESERIALIZE MESSAGE --\n");
-    __debug_display_serialized_message(serialized_msg);
     __debug_display_message(msg);
 #endif
 
@@ -478,10 +429,6 @@ fail:
             free(msg->argv);
         }
     }
-
-#ifdef DEBUGLOG
-    dwrite_log(STDERR_FILENO, "-- END OF DESERIALIZE MESSAGE (AS FAIL) --\n");
-#endif
 
     return -1;
 }
@@ -579,17 +526,17 @@ int deserialize_answer(struct rpc_arg *ret, int size,
 void __debug_display_message(struct message *msg) {
     int cpt;
 
-    fprintf(stderr, "== DEBUGLOG: display_message ==\n");
+    fprintf(stderr, "\n\nDEBUGLOG `display_message` (pid: %d)\n", getpid());
 
     if (msg == NULL) {
         fprintf(stderr, "msg is NULL.\n");
         return;
     }
 
-    fprintf(stderr, "%-20s: %d\n", "command_length", msg->command_length);
-    fprintf(stderr, "%-20s: %s\n", "command", msg->command);
-    fprintf(stderr, "%-20s: %d\n", "return_type", msg->return_type);
-    fprintf(stderr, "%-20s: %d\n", "argc", msg->argc);
+    fprintf(stderr, "  %-20s: %d\n", "command_length", msg->command_length);
+    fprintf(stderr, "  %-20s: %s\n", "command", msg->command);
+    fprintf(stderr, "  %-20s: %d\n", "return_type", msg->return_type);
+    fprintf(stderr, "  %-20s: %d\n", "argc", msg->argc);
 
     cpt = 0;
     while (cpt < msg-> argc) {
@@ -617,53 +564,56 @@ void __debug_display_message(struct message *msg) {
 
         ++cpt;
     }
+
+    fprintf(stderr, "END DEBUGLOG\n\n");
 }
 
 void __debug_display_serialized_message(const char *serialized_msg) {
     int cpt, message_length;
     const char *msg;
 
-    fprintf(stderr, "== DEBUGLOG: display serialized message ==\n");
+    fprintf(stderr, "\n\nDEBUGLOG `serialized message` (pid: %d)\n", getpid());
 
     if (serialized_msg == NULL) {
-        fprintf(stderr, "serialized_msg is NULL.\n");
+        fprintf(stderr, "  serialized_msg is NULL.\n");
         return;
     }
 
     memcpy(&message_length, serialized_msg, sizeof(int));
-    fprintf(stderr, "size: %d\n", message_length);
+    fprintf(stderr, "  size: %d\n", message_length);
 
     cpt = 0;
     msg = serialized_msg + sizeof(int);
     while (cpt < message_length) {
-        fprintf(stderr, "%d ", msg[cpt]);
+        fprintf(stderr, "  %d", msg[cpt]);
         ++cpt;
     }
     fprintf(stderr, "\n");
+    fprintf(stderr, "END DEBUGLOG\n\n");
 }
 
 void __debug_display_serialized_answer(const char *serialized_answer) {
     int cpt, message_length;
     const char *msg;
 
-    fprintf(stderr, "\n\n== DEBUGLOG: display serialized answer ==\n");
+    fprintf(stderr, "\n\nDEBUGLOG: `serialized answer` (pid: %d)\n", getpid());
 
     if (serialized_answer == NULL) {
-        fprintf(stderr, "serialized answer is NULL.\n");
+        fprintf(stderr, "  serialized answer is NULL.\n");
         return;
     }
 
     memcpy(&message_length, serialized_answer, sizeof(int));
-    fprintf(stderr, "size: %d\n", message_length);
+    fprintf(stderr, "  size: %d\n", message_length);
 
     cpt = 0;
     msg = serialized_answer + sizeof(int);
     while (cpt < message_length) {
-        fprintf(stderr, "%d ", msg[cpt]);
+        fprintf(stderr, "  %d", msg[cpt]);
         ++cpt;
     }
     fprintf(stderr, "\n");
-    fprintf(stderr, "== END OF serialized answer ==\n\n");
+    fprintf(stderr, "END DEBUGLOG\n\n");
 }
 
 #endif
