@@ -50,6 +50,7 @@ void loop_server(void){
         err(EXIT_FAILURE, "Error server\n");
     }
 
+    len = sizeof(struct sockaddr);
     while(1){
         fwrite_log(stderr, "Waiting client.");
         if ((client=accept(serv, &addr, &len)) < 0) {
