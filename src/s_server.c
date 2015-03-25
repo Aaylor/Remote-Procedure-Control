@@ -55,6 +55,7 @@ void loop_server(void){
         if ((client=accept(serv, &addr, &len)) < 0) {
             fprintf(stderr, "[%d] Error on accept client: %s\n",
                         getpid(), strerror(errno));
+            continue;
         }
 
         fwrite_log(stderr, "Client accepted.");
