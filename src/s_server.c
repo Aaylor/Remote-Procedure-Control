@@ -190,6 +190,10 @@ int plus(int *a, int *b){
     return *a + *b;
 }
 
+char *identity(char *c) {
+    return c;
+}
+
 /**
  * @brief Entry point.
  * @return .
@@ -197,11 +201,15 @@ int plus(int *a, int *b){
 int main(void)
 {
     fwrite_log(stderr, "Server initialization: add some functions.");
-    struct function_mapper map;
-    fun_ptr_u ptr;
+    struct function_mapper map, map2;
+    fun_ptr_u ptr, ptr2;
     ptr.int_fun = &plus;
     create_function(&map, "plus", RPC_TY_INT, ptr, 2, RPC_TY_INT, RPC_TY_INT);
     add_function(&function_memory, map);
+
+    ptr2.str_fun = &identity;
+    create_function(&map2, "identity", RPC_TY_STR, ptr2, 1, RPC_TY_STR);
+    add_function(&function_memory, map2);
 
     fwrite_log(stderr, "Server loop.");
     loop_server();
