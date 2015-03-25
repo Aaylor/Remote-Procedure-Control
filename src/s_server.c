@@ -17,6 +17,9 @@
 
 int current_client = -1;
 
+LIST_HEAD(processus_list, alive) processus_alive;
+
+
 void timeout_handler(int sig) {
     fprintf(stderr, "[%d] Timeout (%d) at client %d.\n",
             getpid(), sig, current_client);
@@ -50,8 +53,12 @@ void loop_server(void){
         err(EXIT_FAILURE, "Error server\n");
     }
 
+    LIST_INIT(&processus_alive);
+
     len = sizeof(struct sockaddr);
     while(1){
+        pid_t son;
+
         fwrite_log(stderr, "Waiting client.");
         if ((client=accept(serv, &addr, &len)) < 0) {
             fprintf(stderr, "[%d] Error on accept client: %s\n",
@@ -60,12 +67,90 @@ void loop_server(void){
         }
 
         fwrite_log(stderr, "Client accepted.");
-        if(fork()==0){
+        son = fork();
+        if (son < 0) { /* error */
+            fwrite_log(stderr, "Fail to fork.");
+            /* FIXME: send error here. */
+            continue;
+        }
+        else if (son == 0) { /* son */
             fwrite_log(stderr, "New process: handling client.");
             gestion_client(client);
         }
+
+        check_client_track();
+        keep_track_of_client(son, client);
     }
 
+}
+
+void keep_track_of_client(pid_t client_pid, int client_fd) {
+    struct alive *current_processus;
+    current_processus = malloc(sizeof(struct alive));
+    if (current_processus == NULL) {
+        fprintf(stderr, "[%d] Fail to keep link with son (pid: %d).",
+                    getpid(), client_pid);
+    }
+
+    current_processus->son       = client_pid;
+    current_processus->client_fd = client_fd;
+    LIST_INSERT_HEAD(&processus_alive, current_processus, processus_alives);
+}
+
+void check_client_track(void) {
+    int res;
+    struct alive *p, *next;
+
+    p = processus_alive.lh_first;
+    while(p != NULL) {
+        int info, err;
+
+        next = p->processus_alives.le_next;
+
+        res = waitpid(p->son, &info, WNOHANG);
+        if (res == 0) {
+            /* Has not finished yet. */
+            continue;
+        } else if (res == -1) {
+            /* error */
+            err = errno;
+            switch(err) {
+                case ECHILD:
+                    fprintf(stderr, "[%d] CLIENT_TRACK_SYSTEM: Unexistant client (%d).\n",
+                                getpid(), p->son);
+                    LIST_REMOVE(p, processus_alives);
+                    close(p->client_fd);
+                    free(p);
+                    break;
+                default:
+                    fprintf(stderr, "[%d] CLIENT_TRACK_SYSTEM: Unknown error. Do nothing on pid (%d).\n",
+                                getpid(), p->son);
+                    break;
+
+            }
+            /* TODO: check what kind of error. */
+        }
+
+        if (WIFEXITED(info)) {
+            fprintf(stderr, "[%d] CLIENT_TRACK_SYSTEM: Removing client (%d).\n",
+                        getpid(), p->son);
+            LIST_REMOVE(p, processus_alives);
+            free(p);
+        } else if (WIFSIGNALED(info)) {
+            fprintf(stderr, "[%d] CLIENT_TRACK_SYSTEM: Errour found on client (%d). Killing processus and sending error message.\n",
+                        getpid(), p->son);
+
+            LIST_REMOVE(p, processus_alives);
+            send_error(p->client_fd, RPC_RET_NO_ANSWER);
+            close(p->client_fd);
+            free(p);
+        } else {
+            /* Should not appear... */
+        }
+
+        p = next;
+        continue;
+    }
 }
 
 void gestion_client(int client){

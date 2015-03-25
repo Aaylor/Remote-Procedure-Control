@@ -29,11 +29,33 @@
 
 #define BUFF 256
 
+struct alive {
+    pid_t son;
+    int   client_fd;
+    LIST_ENTRY(alive) processus_alives;
+};
+
 /**
  * @brief Create the loop waiting for request of the client. Fork before
  * executing request.
  */
 void loop_server(void);
+
+
+/**
+ * @brief Record the new client into the main process system.
+ * It's use to track every process created during the main loop.
+ * @param client_pid The new client pid.
+ * @param client_fd The new client file descriptor.
+ */
+void keep_track_of_client(pid_t client_pid, int client_fd);
+
+
+/**
+ * @brief Check every tracked client, and remove them if they're not alive
+ * anymore.
+ */
+void check_client_track(void);
 
 /**
  * @brief execute a double fork to verify if after 5 seconds the process is
