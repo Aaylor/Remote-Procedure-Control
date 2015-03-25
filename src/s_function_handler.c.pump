@@ -1,6 +1,6 @@
 
 #include "s_function_handler.h"
-#
+
 void execute_function(int client, char **return_t,
         int *size, struct function_t *function, struct message *msg){
 
