@@ -133,12 +133,16 @@ int getAnswer(int clt, int type, void *ret){
 
     switch(ret_arg.typ){
         case RPC_TY_VOID:
-            ret = NULL;
+            break;
         case RPC_TY_STR:
-            strcpy(ret, ret_arg.data);
+            if (ret != NULL) {
+                strcpy(ret, ret_arg.data);
+            }
             break;
         case RPC_TY_INT:
-            *(int *)ret = *(int *)ret_arg.data;
+            if (ret != NULL) {
+                *(int *)ret = *(int *)ret_arg.data;
+            }
             break;
         default:
             assert(0); /* By deserialisation_answer */

@@ -490,7 +490,10 @@ int deserialize_answer(struct rpc_arg *ret, int size,
         const char *serialized_ret){
     char status, data_length;
 
-    if(size < 1) return -1;
+    if(size < 1 || ret == NULL) {
+        return -1;
+    }
+
     /* Get back the return status */
     memcpy(&status, serialized_ret, sizeof(char));
 
