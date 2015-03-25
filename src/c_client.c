@@ -185,12 +185,20 @@ void printErrorStatus(int status){
  */
 int main(void)
 {
-    int ret = 0;
-    int a = 1, b = 2;
-    external_call("plus", RPC_TY_INT, &ret, &a, RPC_TY_INT, &b, RPC_TY_INT);
-    printf("%d\n", ret);
+    char str_ret[124];
+    char *hello_world = "Hello World !";
 
-    external_call("moins", RPC_TY_INT, &ret, &a, RPC_TY_INT, &b, RPC_TY_INT);
+    external_call("identity", RPC_TY_STR, str_ret, hello_world, RPC_TY_STR, NULL);
+    printf("Get value: '%s'.\n", str_ret);
+
+    int ret, a, b;
+    a = 1;
+    b = 41;
+
+    external_call("plus", RPC_TY_INT, &ret, &a, RPC_TY_INT, &b, RPC_TY_INT, NULL);
+    printf("Get value: '%d'\n", ret);
+
+    external_call("moins", RPC_TY_INT, &ret, &a, RPC_TY_INT, &b, RPC_TY_INT, NULL);
     return EXIT_SUCCESS;
 }
 

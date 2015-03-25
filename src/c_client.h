@@ -35,7 +35,7 @@
  * @param ret The pointer in which the returned value will be stored
  * @param ... The arguments that must be given to *cmd*. For each argument,
  * the argument itself must given as a void *, and the type must be given as
- * an int. The list of argument must be terminated by a NULL pointer.
+ * an int. <b>The list of argument must be terminated by a NULL pointer.</b>
  *
  * @return 0 if the operation is succesfull, -1 else
  */
@@ -73,3 +73,4 @@ int getAnswer(int clt, int type, void *ret);
 void printErrorStatus(int status);
 
 #endif /* CLIENT_H */
+
