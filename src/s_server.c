@@ -291,11 +291,13 @@ int main(void)
     struct function_mapper map, map2;
     fun_ptr_u ptr, ptr2;
     ptr.int_fun = &plus;
-    create_function(&map, "plus", RPC_TY_INT, ptr, 2, RPC_TY_INT, RPC_TY_INT);
+    create_function(&map, "plus", RPC_TY_INT, "plus function",
+            ptr, 2, RPC_TY_INT, RPC_TY_INT);
     add_function(&function_memory, map);
 
     ptr2.str_fun = &identity;
-    create_function(&map2, "identity", RPC_TY_STR, ptr2, 1, RPC_TY_STR);
+    create_function(&map2, "identity", RPC_TY_STR, "return the same str",
+            ptr2, 1, RPC_TY_STR);
     add_function(&function_memory, map2);
 
     fwrite_log(stderr, "Server loop.");

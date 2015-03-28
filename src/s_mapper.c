@@ -2,9 +2,10 @@
 #include "s_mapper.h"
 
 int create_function(struct function_mapper *mapper, const char *name,
-        char return_type, fun_ptr_u fun_ptr, int argc, ...) {
+        char return_type, const char* description,
+        fun_ptr_u fun_ptr, int argc, ...) {
     int     cpt;
-    size_t  fname_length;
+    size_t  fname_length, description_length;
     va_list ap;
 
     if (mapper == NULL) {
@@ -25,6 +26,13 @@ int create_function(struct function_mapper *mapper, const char *name,
 
     mapper->fun.return_type = return_type;
     mapper->fun.argc        = argc;
+
+    if (description == NULL) {
+        description_length = 0;
+    } else {
+        description_length = strlen(description);
+        strcpy(mapper->description, description);
+    }
 
     cpt = 0;
     va_start(ap, argc);

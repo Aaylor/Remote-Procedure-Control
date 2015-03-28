@@ -23,9 +23,9 @@
 
 
 
-#define FUNCTION_NAME_LENGTH 255
-
-#define MAX_PARAMETERS       127
+#define FUNCTION_NAME_LENGTH    255
+#define MAX_DESCRIPTION_LENGTH  1023
+#define MAX_PARAMETERS          127
 
 
 
@@ -104,12 +104,22 @@ struct function_mapper {
     /**
      * @brief The length of name.
      */
-    size_t     name_length;
+    size_t name_length;
 
     /**
      * @brief The function's name.
      */
     char name[FUNCTION_NAME_LENGTH + 1];
+
+    /**
+     * @brief The length of description.
+     */
+    size_t description_length;
+
+    /**
+     * @brief Describe the function.
+     */
+    char description[MAX_DESCRIPTION_LENGTH + 1];
 
     /**
      * @brief The function itself, containing types and its pointer.
@@ -154,13 +164,16 @@ struct memory {
  * @param mapper The mapper to fill.
  * @param name The function name.
  * @param return_type The returned type of the function.
+ * @param description The descrition of the function.
+ * If set to NULL, the description is considered as not set.
  * @param funptr The pointer to the function
  * @param argc The number of parameters.
  * @param ... All the parameters.
  * @return 0 if everything is ok.
  */
 int create_function(struct function_mapper *mapper, const char *name,
-        char return_type, fun_ptr_u funptr, int argc, ...);
+        char return_type, const char *description,
+        fun_ptr_u funptr, int argc, ...);
 
 /**
  * @brief Add the function to the given memory.
