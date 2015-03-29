@@ -22,6 +22,7 @@
 #include "libnet.h"
 #include "u_log.h"
 #include "u_rpc_data.h"
+#include "s_defaults.h"
 #include "s_mapper.h"
 #include "s_function_handler.h"
 #include "s_specials.h"

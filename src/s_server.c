@@ -260,15 +260,8 @@ void read_msg(int client, struct message *msg){
     free(from);
 }
 
+
 #ifndef UNIT_TEST
-
-int plus(int *a, int *b){
-    return *a + *b;
-}
-
-char *identity(char *c) {
-    return c;
-}
 
 /**
  * @brief Entry point.
@@ -276,22 +269,8 @@ char *identity(char *c) {
  */
 int main(void)
 {
-    struct function_mapper map, map2;
-    fun_ptr_u ptr, ptr2;
-
-    fwrite_log(stderr, "Server initialization: add some functions.");
-
-    /* first fun */
-    ptr.int_fun = &plus;
-    create_function(&map, "plus", RPC_TY_INT, "plus function",
-            ptr, 2, RPC_TY_INT, RPC_TY_INT);
-    add_function(&function_memory, map);
-
-    /* second fun */
-    ptr2.str_fun = &identity;
-    create_function(&map2, "identity", RPC_TY_STR, "return the same str",
-            ptr2, 1, RPC_TY_STR);
-    add_function(&function_memory, map2);
+    /* add default functions */
+    add_default_functions(&function_memory);
 
     /* generate doc */
     generate_documentation(NULL, &function_memory);
