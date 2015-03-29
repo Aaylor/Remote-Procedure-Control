@@ -79,8 +79,8 @@ int documentation_size(struct memory *memory) {
 
         if (fmap->fun.argc > 0) {
 
-            /* params type, +1 for new line */
-            size += strlen(HD_PARAM_TYPES) + 1;
+            /* params type */
+            size += strlen(HD_PARAM_TYPES);
             cpt = 0;
             while (cpt < fmap->fun.argc) {
                 size += type_size(fmap->fun.argv[cpt]);
@@ -91,10 +91,10 @@ int documentation_size(struct memory *memory) {
             ++size; /* new line */
         }
 
-        /* end of function description */
-        size += 1;
-
     }
+
+    /* end of function description */
+    size += 1;
 
     return size;
 }
