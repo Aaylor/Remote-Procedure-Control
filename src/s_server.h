@@ -1,7 +1,6 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-
 /**
  * @file s_server.h
  * @brief Header for server
@@ -21,20 +20,40 @@
 #include <sys/time.h>
 
 #include "libnet.h"
-
 #include "u_log.h"
 #include "u_rpc_data.h"
 #include "s_mapper.h"
 #include "s_function_handler.h"
 #include "s_specials.h"
 
+/**
+ * @brief Buffer size.
+ */
 #define BUFF 256
 
+
+/**
+ * @brief Structure representing a list of alives processus.
+ */
 struct alive {
+
+    /**
+     * @brief The pid of the son processus.
+     */
     pid_t son;
+
+    /**
+     * @brief The descriptor of the socket binded to the son processus.
+     */
     int   client_fd;
+
+    /**
+     * @brief The list of alive processus.
+     */
     LIST_ENTRY(alive) processus_alives;
+
 };
+
 
 /**
  * @brief Create the loop waiting for request of the client. Fork before
@@ -68,7 +87,7 @@ void gestion_client(int client);
 
 /**
  * @brief Use to execute the main code of a client.
- * @param The client socket which is connected.
+ * @param client The client socket which is connected.
  */
 void execute_client(int client);
 
@@ -92,7 +111,7 @@ struct function_mapper *search_function(int client, struct message *msg);
 /**
  * @brief Function taking a client and send him an error message.
  * @param client The socket client on which we are connected.
- * @param i The integer which represents the type error expected.
+ * @param c The character which represents the type error expected.
  */
 void send_error(int client, char c);
 

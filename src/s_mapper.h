@@ -22,10 +22,20 @@
 #include "u_rpc_data.h"
 
 
-
+/**
+ * @brief The max length for a function name.
+ */
 #define FUNCTION_NAME_LENGTH    255
+
+/**
+ * @brief The max length for a description.
+ */
 #define MAX_DESCRIPTION_LENGTH  1023
-#define MAX_PARAMETERS          127
+
+/**
+ *  @brief The max parameters allowed for functions.
+ */
+#define MAX_PARAMETERS          255
 
 
 
@@ -128,7 +138,6 @@ struct function_mapper {
 
     /**
      * @brief The type of the function_mapper list.
-     * @param function_mapper The function_mapper's type.
      */
     LIST_ENTRY(function_mapper) fm_list;
 
@@ -152,12 +161,14 @@ struct memory {
 
     /**
      * @brief The structure type corresponding to the list of function_mapper.
-     * @param memory_list The structure name.
-     * @param function_mapper The list type.
      */
     LIST_HEAD(memory_list, function_mapper) fmap;
 
-} function_memory;
+}
+    /**
+     * @brief The default function_memory.
+     */
+    function_memory;
 
 /**
  * @brief Fill the mapper with every given informations.
