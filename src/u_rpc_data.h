@@ -43,7 +43,7 @@
 
 /* ANSWER PROTOCOL (server → client):
  *  <message_length : int [4 octet]>
- *  <message_type   : 1 octet>
+ *  <status         : 1 octet>
  * ----- if ret type is OK ----
  *  <arg            : {size of arg : dependant of the type}>
  * ----------------------------
