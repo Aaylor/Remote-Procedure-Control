@@ -172,26 +172,31 @@ void printErrorStatus(int status){
 
 #ifndef UNIT_TEST
 
-/**
- * @brief Entry point.
- * @return 
- */
-int main(void)
-{
-    char str_ret[124];
-    char *hello_world = "Hello World !";
+int main(int argc, char **argv) {
+    int cpt;
 
-    external_call("identity", RPC_TY_STR, str_ret, hello_world, RPC_TY_STR, NULL);
-    printf("Get value: '%s'.\n", str_ret);
+    cpt = 1;
+    while (cpt < argc) {
+        char *cmd = argv[cpt];
 
-    int ret, a, b;
-    a = 1;
-    b = 41;
+        if (strcmp(cmd, "-l") == 0 || strcmp(cmd, "--list") == 0) {
 
-    external_call("plus", RPC_TY_INT, &ret, &a, RPC_TY_INT, &b, RPC_TY_INT, NULL);
-    printf("Get value: '%d'\n", ret);
+            char doc[1024];
 
-    external_call("moins", RPC_TY_INT, &ret, &a, RPC_TY_INT, &b, RPC_TY_INT, NULL);
+            external_call("documentation", RPC_TY_STR, doc, NULL);
+            printf("%s", doc);
+            printf("<length: %lu>\n", strlen(doc));
+            exit(EXIT_SUCCESS);
+
+        } else if (strcmp(cmd, "-c") == 0 || strcmp(cmd, "--command") == 0) {
+            /* command */
+        } else {
+            fprintf(stderr, "Unknown command `%s`.\n", argv[cpt]);
+            exit(EXIT_FAILURE);
+        }
+
+        ++cpt;
+    }
     return EXIT_SUCCESS;
 }
 
