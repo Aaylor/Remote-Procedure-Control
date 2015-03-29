@@ -30,7 +30,7 @@ int create_function(struct function_mapper *mapper, const char *name,
     if (description == NULL) {
         description_length = 0;
     } else {
-        description_length = strlen(description);
+        mapper->description_length = strlen(description);
         strcpy(mapper->description, description);
     }
 
