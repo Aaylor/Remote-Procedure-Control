@@ -17,7 +17,7 @@ int generate_documentation(int *size, struct memory *memory);
  * @brief Return the documentation. IT MUST NOT BE FREED.
  * @return The pointers to the documentation.
  */
-const char *get_documentation(void);
+char *get_documentation(void);
 
 #endif /* S_SPECIALS_H */
 

@@ -4,7 +4,7 @@
 /*
  *  The current documentation.
  */
-char *documentation = NULL;
+char *__doc_string = NULL;
 
 const char *HD_NAME_STRING     = "NAME: ";
 const char *HD_DOC_STRING      = "DOC: ";
@@ -114,14 +114,14 @@ int generate_documentation(int *size, struct memory *memory) {
         return 1;
     }
 
-    /* if an another documentation exists, just free it before create a new
+    /* if an another __doc_string exists, just free it before create a new
      * one. */
-    if (documentation != NULL) {
-        free(documentation);
+    if (__doc_string != NULL) {
+        free(__doc_string);
     }
 
-    documentation = malloc(generated_size);
-    if (documentation == NULL) {
+    __doc_string = malloc(generated_size);
+    if (__doc_string == NULL) {
         return 1;
     }
 
@@ -130,74 +130,74 @@ int generate_documentation(int *size, struct memory *memory) {
             fmap != NULL; fmap = fmap->fm_list.le_next) {
 
         /* function name */
-        memcpy(documentation + cpt, HD_NAME_STRING,
+        memcpy(__doc_string + cpt, HD_NAME_STRING,
                 strlen(HD_NAME_STRING));
         cpt += strlen(HD_NAME_STRING);
-        memcpy(documentation + cpt, fmap->name, fmap->name_length);
+        memcpy(__doc_string + cpt, fmap->name, fmap->name_length);
         cpt += fmap->name_length;
-        documentation[cpt++] = '\n';
+        __doc_string[cpt++] = '\n';
 
         /* function description */
-        memcpy(documentation + cpt, HD_DOC_STRING,
+        memcpy(__doc_string + cpt, HD_DOC_STRING,
                 strlen(HD_DOC_STRING));
         cpt += strlen(HD_DOC_STRING);
         if (fmap->description_length > 0) {
-            memcpy(documentation + cpt, fmap->description,
+            memcpy(__doc_string + cpt, fmap->description,
                     fmap->description_length);
             cpt += fmap->description_length;
         } else {
-            memcpy(documentation + cpt, NO_DOC_STRING,
+            memcpy(__doc_string + cpt, NO_DOC_STRING,
                     strlen(NO_DOC_STRING));
             cpt += strlen(NO_DOC_STRING);
         }
-        documentation[cpt++] = '\n';
+        __doc_string[cpt++] = '\n';
 
         /* return type */
-        memcpy(documentation + cpt, HD_RET_TYPE_STRING,
+        memcpy(__doc_string + cpt, HD_RET_TYPE_STRING,
                 strlen(HD_RET_TYPE_STRING));
         cpt += strlen(HD_RET_TYPE_STRING);
-        memcpy(documentation + cpt, get_type(fmap->fun.return_type),
+        memcpy(__doc_string + cpt, get_type(fmap->fun.return_type),
                 type_size(fmap->fun.return_type));
         cpt += type_size(fmap->fun.return_type);
-        documentation[cpt++] = '\n';
+        __doc_string[cpt++] = '\n';
 
         /* number of parameters */
-        memcpy(documentation + cpt, HD_NB_PARAM_STRING,
+        memcpy(__doc_string + cpt, HD_NB_PARAM_STRING,
                 strlen(HD_NB_PARAM_STRING));
         cpt += strlen(HD_NB_PARAM_STRING);
-        sprintf(documentation + cpt, "%d", fmap->fun.argc);
+        sprintf(__doc_string + cpt, "%d", fmap->fun.argc);
         cpt += int_size(fmap->fun.argc);
-        documentation[cpt++] = '\n';
+        __doc_string[cpt++] = '\n';
 
         if (fmap->fun.argc > 0) {
             i = 0;
 
-            memcpy(documentation + cpt, HD_PARAM_TYPES,
+            memcpy(__doc_string + cpt, HD_PARAM_TYPES,
                     strlen(HD_PARAM_TYPES));
             cpt += strlen(HD_PARAM_TYPES);
 
             while (i < fmap->fun.argc) {
-                memcpy(documentation + cpt,
+                memcpy(__doc_string + cpt,
                         get_type(fmap->fun.argv[i]),
                         type_size(fmap->fun.argv[i]));
                 cpt += type_size(fmap->fun.argv[i]);
 
-                documentation[cpt++] =
+                __doc_string[cpt++] =
                     i < fmap->fun.argc - 1 ? ',' : '\n';
 
                 ++i;
             }
 
-            documentation[cpt++] = '\n';
+            __doc_string[cpt++] = '\n';
         }
     }
 
-    documentation[cpt++] = '\n';
+    __doc_string[cpt++] = '\n';
 
     return 0;
 }
 
-const char *get_documentation(void) {
-    return documentation;
+char *get_documentation(void) {
+    return __doc_string;
 }
 
