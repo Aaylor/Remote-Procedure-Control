@@ -488,13 +488,12 @@ char *serialize_answer(int *msg_size, char status, struct rpc_arg *ret){
 
 int deserialize_answer(struct rpc_arg *ret, int size,
         const char *serialized_ret){
-    char status, data_length;
+    char status;
+    int  data_length;
 
     if(size < 1 || ret == NULL) {
         return -1;
     }
-
-    printf("size: %d\n", size);
 
     /* Get back the return status */
     memcpy(&status, serialized_ret, sizeof(char));
@@ -513,8 +512,14 @@ int deserialize_answer(struct rpc_arg *ret, int size,
         else if(ret->typ == RPC_TY_STR){
             /* Get back data lenght */
             /* FIXME: sizeof(char) lead with some problem at "doc" funcall. */
-            memcpy(&data_length, serialized_ret + 2, sizeof(char));
+            /*memcpy(&data_length, serialized_ret + 2, sizeof(char));*/
+            data_length = size - (3 * sizeof(char));
+
             ret->data = malloc(data_length + 1);
+            if (ret->data == NULL) {
+                return -1;
+            }
+
             /* Get back the string */
             strncpy(ret->data, serialized_ret + 3, data_length);
         }
