@@ -170,6 +170,14 @@ void printErrorStatus(int status){
     }
 }
 
+void call_documentation(void) {
+    char doc[1024];
+
+    external_call("documentation", RPC_TY_STR, doc, NULL);
+    printf("%s", doc);
+    exit(EXIT_SUCCESS);
+}
+
 #ifndef UNIT_TEST
 
 int main(int argc, char **argv) {
@@ -180,14 +188,7 @@ int main(int argc, char **argv) {
         char *cmd = argv[cpt];
 
         if (strcmp(cmd, "-l") == 0 || strcmp(cmd, "--list") == 0) {
-
-            char doc[1024];
-
-            external_call("documentation", RPC_TY_STR, doc, NULL);
-            printf("%s", doc);
-            printf("<length: %lu>\n", strlen(doc));
-            exit(EXIT_SUCCESS);
-
+            call_documentation();
         } else if (strcmp(cmd, "-c") == 0 || strcmp(cmd, "--command") == 0) {
             /* command */
         } else {
