@@ -130,7 +130,7 @@ START_TEST (check_de_serialize_integer) {
 } END_TEST
 
 START_TEST (check_de_serialize_message) {
-    int i, tmp, cpt;
+    int i, tmp, cpt, msg_size;
     char *serialized;
     char buf[64];
     struct message msg;
@@ -141,7 +141,7 @@ START_TEST (check_de_serialize_message) {
      */
 
     create_message(&msg, "func", RPC_TY_VOID, 0, NULL);
-    serialized = serialize_message(&msg);
+    serialized = serialize_message(&msg_size, &msg);
 
     /* Read the serialization */
 
@@ -166,6 +166,8 @@ START_TEST (check_de_serialize_message) {
     memcpy(&tmp, serialized + cpt, sizeof(int));
     ck_assert_int_eq(tmp, 0);
     cpt += sizeof(int);
+
+    ck_assert_int_eq(msg_size, cpt);
 
     /* Deserialization */
 
@@ -210,7 +212,7 @@ START_TEST (check_de_serialize_message) {
     memcpy(argv[2].data, &i, sizeof(int));
 
     create_message(&msg, "func_bis", RPC_TY_INT, 3, argv);
-    serialized = serialize_message(&msg);
+    serialized = serialize_message(&msg_size, &msg);
 
     memcpy(&tmp, serialized, sizeof(int));
     tmp = deserialize_message(&msg, tmp, serialized + sizeof(int));

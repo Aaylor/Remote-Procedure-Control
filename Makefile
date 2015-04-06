@@ -98,9 +98,9 @@ $(SRC)server.o: $(UTIL_HEADERS)
 #FIXME: better rule
 tests: $(LIBNET_DYN)
 	cd src; $(CC) -I../$(LIBNET_SRC) -c *.c -c -D UNIT_TEST
-	@$(CC) -Isrc -Llib -lcheck -L$(LIBNET) -l$(NET) $(UTIL_UNIT_TEST).c -o \
+	$(CC) -Isrc -Llib -lcheck -L$(LIBNET) -l$(NET) $(UTIL_UNIT_TEST).c -o \
 		$(UTIL_UNIT_TEST).utest $(OBJECTS)
-	@$(CC) -Isrc -Llib -lcheck -L$(LIBNET) -l$(NET) $(SERVER_UNIT_TEST).c \
+	$(CC) -Isrc -Llib -lcheck -L$(LIBNET) -l$(NET) $(SERVER_UNIT_TEST).c \
 		-o $(SERVER_UNIT_TEST).utest $(OBJECTS)
 	@for t in tests/*.utest; do						\
 		echo "\n~~~ $$t ~~~\n";						\

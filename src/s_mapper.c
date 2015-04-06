@@ -126,6 +126,8 @@ int remove_function(struct memory *memory, const char *fun_name) {
         LIST_REMOVE(fmap, fm_list);
         free(fmap);
         --memory->size;
+
+        return 0;
     }
 
     return -1;
