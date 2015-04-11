@@ -173,12 +173,18 @@ void printErrorStatus(int status){
 void call_documentation(void) {
     char doc[1024];
 
-    external_call("documentation", RPC_TY_STR, doc, NULL);
+    external_call("documentation", RPC_TY_STR, doc, NULL, NULL);
     printf("%s", doc);
     exit(EXIT_SUCCESS);
 }
 
+void call_shutdown(char *password) {
+    external_call("shutdown", RPC_TY_VOID, NULL, password, RPC_TY_STR, NULL);
+}
+
 #ifndef UNIT_TEST
+
+#define STR_EQ(str1, str2) strcmp(str1, str2) == 0
 
 int main(int argc, char **argv) {
     int cpt;
@@ -187,9 +193,15 @@ int main(int argc, char **argv) {
     while (cpt < argc) {
         char *cmd = argv[cpt];
 
-        if (strcmp(cmd, "-l") == 0 || strcmp(cmd, "--list") == 0) {
+        if (STR_EQ(cmd, "-l") || STR_EQ(cmd, "--list")) {
             call_documentation();
-        } else if (strcmp(cmd, "-c") == 0 || strcmp(cmd, "--command") == 0) {
+        } else if (STR_EQ(cmd, "-s") || STR_EQ(cmd, "--shutdown")) {
+            if (++cpt >= argc) {
+                fprintf(stderr, "Expected password for shutdown command.\n");
+                exit(EXIT_FAILURE);
+            }
+            call_shutdown(argv[cpt]);
+        } else if (STR_EQ(cmd, "-c") || STR_EQ(cmd, "--command")) {
             /* command */
         } else {
             fprintf(stderr, "Unknown command `%s`.\n", argv[cpt]);
