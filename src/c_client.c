@@ -210,8 +210,155 @@ void call_shutdown(char *password) {
 
 #define STR_EQ(str1, str2) strcmp(str1, str2) == 0
 
+int is_type_command(const char *cmd) {
+    return STR_EQ(cmd, "-int") || STR_EQ(cmd, "-str") || STR_EQ(cmd, "-void");
+}
+
+char returned_type(const char *cmd) {
+    if (STR_EQ(cmd, "-int"))
+        return RPC_TY_INT;
+    else if (STR_EQ(cmd, "-str"))
+        return RPC_TY_STR;
+    else
+        return RPC_TY_VOID;
+}
+
+void command_line_error(int pos) {
+    fprintf(stderr, "Error while parsing command line, at %d.\n", pos);
+    fprintf(stderr, "Should be like: ");
+    fprintf(stderr, "--command function_name -ret -typ [-typ arg1 ... -typ argN]\n");
+    fprintf(stderr, "Where typ could be: -int, -str, -void.\n");
+    exit(EXIT_FAILURE);
+}
+
+int check_command(int argc, char **argv, int current_cpt) {
+    int cpt, nb_arg;
+
+    /* Arg form: --command function_name -ret -typ -typ arg1 ... -typ argN */
+    if (current_cpt + 2 >= argc)
+        command_line_error(argc);
+
+    nb_arg = 0;
+    for (cpt = current_cpt + 3; cpt < argc; cpt += 2) {
+        char ret;
+
+        if (!is_type_command(argv[cpt])) {
+            fprintf(stderr, "Argument type (%s) is not correct.\n", argv[cpt]);
+            command_line_error(cpt);
+        }
+
+        ret = returned_type(argv[cpt]);
+
+        if (ret != RPC_TY_VOID && cpt + 1 >= argc)
+            command_line_error(cpt + 1);
+
+        if (ret == RPC_TY_STR) {
+            cpt += 2;
+            while (cpt < argc) {
+                if (argv[cpt][0] == '-') {
+                    cpt -= 2;
+                    break;
+                }
+
+                ++cpt;
+            }
+        }
+
+        nb_arg++;
+    }
+
+    return nb_arg;
+}
+
+void parse_command(struct message *msg, int argc, char **argv,
+        int current_cpt) {
+    int cpt, arg_cpt, nb_arg;
+    struct rpc_arg *arg;
+
+    nb_arg = check_command(argc, argv, current_cpt);
+
+    arg = NULL;
+    if (nb_arg != 0) {
+        arg = malloc(nb_arg * sizeof(struct rpc_arg));
+        if (arg == NULL) {
+            perror("malloc()");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    msg->command_length = strlen(argv[current_cpt]);
+    msg->command = malloc(msg->command_length);
+    if (msg->command == NULL) {
+        perror("malloc()");
+        exit(EXIT_FAILURE);
+    }
+    msg->return_type = returned_type(argv[current_cpt + 2]);
+
+    arg_cpt = 0;
+    for(cpt = current_cpt + 3; cpt < argc; cpt += 2) {
+        int integer_result;
+        int string_size, sub_cpt;
+
+        arg[arg_cpt].typ = returned_type(argv[cpt]);
+        switch (arg[arg_cpt].typ) {
+            case RPC_TY_INT:
+                integer_result = atoi(argv[cpt + 1]);
+                arg[arg_cpt].data = malloc(sizeof(int));
+                if (arg[arg_cpt].data == NULL) {
+                    perror("malloc()");
+                    exit(EXIT_FAILURE);
+                }
+
+                memcpy(arg[arg_cpt].data, &integer_result, sizeof(int));
+                break;
+
+
+            case RPC_TY_STR:
+                string_size = 0;
+
+                sub_cpt = ++cpt;
+                while (cpt < argc) {
+                    if (argv[cpt][0] == '-') {
+                        cpt -= 2;
+                        break;
+                    }
+                    string_size += strlen(argv[cpt]) + 1;
+
+                    ++cpt;
+                }
+
+                arg[arg_cpt].data = malloc(string_size);
+                if (arg[arg_cpt].data == NULL) {
+                    perror("malloc()");
+                    exit(EXIT_FAILURE);
+                }
+
+                while (sub_cpt < cpt + 2) {
+                    strcat(arg[arg_cpt].data, argv[sub_cpt]);
+                    if (sub_cpt + 1 != cpt + 2)
+                        strcat(arg[arg_cpt].data, " ");
+
+                    ++sub_cpt;
+                }
+
+                break;
+
+            case RPC_TY_VOID:
+                fprintf(stderr, "Should not be void argument.\n");
+                exit(EXIT_FAILURE);
+
+            default:
+                fprintf(stderr, "UNKNOWN TYPE.\n");
+        }
+    }
+
+    msg->argc = nb_arg;
+    msg->argv = arg;
+}
+
 int main(int argc, char **argv) {
     int cpt;
+    struct message msg;
 
     cpt = 1;
     while (cpt < argc) {
@@ -226,7 +373,9 @@ int main(int argc, char **argv) {
             }
             call_shutdown(argv[cpt]);
         } else if (STR_EQ(cmd, "-c") || STR_EQ(cmd, "--command")) {
-            /* command */
+            parse_command(&msg, argc, argv, cpt + 1);
+            /* TODO: do something with msg */
+            break; /* parse_command take the whole command line */
         } else {
             fprintf(stderr, "Unknown command `%s`.\n", argv[cpt]);
             exit(EXIT_FAILURE);
