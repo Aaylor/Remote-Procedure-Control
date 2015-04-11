@@ -14,11 +14,10 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <sys/un.h>
 #include <sys/socket.h>
 #include <string.h>
 #include <assert.h>
-
-#include "libnet.h"
 
 #include "u_log.h"
 #include "u_rpc_data.h"
@@ -43,10 +42,15 @@ int external_call
     (const char *cmd, int type, void *ret, ...
      /* void *arg_i, int type_i, NULL */);
 
-
-/* TODO : Comment this function */
-int external_callv
-    (const char *cmd, unsigned short argc, struct rpc_arg *argv);
+/**
+ * @brief Creates a client unix server and connect it to the server socket
+ * binded with the given path.
+ * @param sock_path The address of the server socket that the socket will
+ * connect.
+ * @return The filedescriptor of the resulting client socket if the operation
+ * is succesfull, -1 else.
+ */
+int clt_sock(char *sock_path);
 
 /**
  * @brief Send a message to the server.

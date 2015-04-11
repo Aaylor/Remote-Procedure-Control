@@ -57,13 +57,37 @@ int external_call(const char *cmd, int type, void *ret, ...){
     return succes;
 }
 
+int clt_sock(char *sock_path){
+    struct sockaddr_un addr;
+    int clt;
+
+    if((clt = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+        fprintf(stderr, "[%d] %s (%s)\n", getpid(),
+                    "Error when initialising the client socket.",
+                    strerror(errno));
+        return -1;
+    }
+
+    memset(&addr, 0, sizeof(struct sockaddr_un));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, sock_path, sizeof(addr.sun_path) - 1);
+
+    if (connect(clt, (struct sockaddr *) &addr, sizeof(struct sockaddr_un)) < 0){
+        fprintf(stderr, "[%d] %s (%s)\n", getpid(),
+                    "Error when connecting the client socket.",
+                    strerror(errno));
+        return -1;
+    }
+
+    return clt;
+}
 
 int sendCmd(struct message *msg){
     int clt, size;
 
     char *serial = serialize_message(&size, msg);
 
-    if( (clt = clt_tcpsock("localhost", "23456", AF_INET))<0 ) {
+    if( (clt = clt_sock(SOCK_PATH))<0 ) {
         fprintf(stderr, "Unable to connect... \n");
         clt =  -1;
         goto endSendCmd;
