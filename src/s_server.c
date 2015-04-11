@@ -32,6 +32,15 @@ void set_timeout(int seconds) {
     signal(SIGALRM, &timeout_handler);
 }
 
+void kill_handler(int sig) {
+    if (sig == SIGUSR1)
+        fprintf(stderr, "[%d] Shutdown send by son processus.\n", getpid());
+    else
+        fprintf(stderr, "[%d] Killed by exterior signal.\n", getpid());
+
+    exit(EXIT_SUCCESS);
+}
+
 void loop_server(void){
     struct sockaddr addr;
     socklen_t len;
@@ -41,6 +50,9 @@ void loop_server(void){
         /*FIXME*/
         err(EXIT_FAILURE, "Error server\n");
     }
+
+    signal(SIGUSR1, &kill_handler);
+    signal(SIGINT,  &kill_handler);
 
     LIST_INIT(&processus_alive);
 
