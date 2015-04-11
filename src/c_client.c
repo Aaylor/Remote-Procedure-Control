@@ -252,18 +252,6 @@ int check_command(int argc, char **argv, int current_cpt) {
         if (ret != RPC_TY_VOID && cpt + 1 >= argc)
             command_line_error(cpt + 1);
 
-        if (ret == RPC_TY_STR) {
-            cpt += 2;
-            while (cpt < argc) {
-                if (argv[cpt][0] == '-') {
-                    cpt -= 2;
-                    break;
-                }
-
-                ++cpt;
-            }
-        }
-
         nb_arg++;
     }
 
@@ -297,7 +285,6 @@ void parse_command(struct message *msg, int argc, char **argv,
     arg_cpt = 0;
     for(cpt = current_cpt + 3; cpt < argc; cpt += 2) {
         int integer_result;
-        int string_size, sub_cpt;
 
         arg[arg_cpt].typ = returned_type(argv[cpt]);
         switch (arg[arg_cpt].typ) {
@@ -314,32 +301,13 @@ void parse_command(struct message *msg, int argc, char **argv,
 
 
             case RPC_TY_STR:
-                string_size = 0;
-
-                sub_cpt = ++cpt;
-                while (cpt < argc) {
-                    if (argv[cpt][0] == '-') {
-                        cpt -= 2;
-                        break;
-                    }
-                    string_size += strlen(argv[cpt]) + 1;
-
-                    ++cpt;
-                }
-
-                arg[arg_cpt].data = malloc(string_size);
+                arg[arg_cpt].data = malloc(strlen(argv[cpt + 1]));
                 if (arg[arg_cpt].data == NULL) {
                     perror("malloc()");
                     exit(EXIT_FAILURE);
                 }
 
-                while (sub_cpt < cpt + 2) {
-                    strcat(arg[arg_cpt].data, argv[sub_cpt]);
-                    if (sub_cpt + 1 != cpt + 2)
-                        strcat(arg[arg_cpt].data, " ");
-
-                    ++sub_cpt;
-                }
+                strcpy(arg[arg_cpt].data, argv[cpt + 1]);
 
                 break;
 
@@ -359,6 +327,16 @@ void parse_command(struct message *msg, int argc, char **argv,
 int main(int argc, char **argv) {
     int cpt;
     struct message msg;
+
+#ifdef DEBUGLOG
+    int __debug_i;
+
+    fprintf(stderr, "[ARGV PRINTING]\n");
+    for (__debug_i = 0; __debug_i < argc; __debug_i++) {
+        fprintf(stderr, "%2d: %s\n", __debug_i, argv[__debug_i]);
+    }
+    fprintf(stderr, "[ARGV PRINTING]\n\n");
+#endif
 
     cpt = 1;
     while (cpt < argc) {
