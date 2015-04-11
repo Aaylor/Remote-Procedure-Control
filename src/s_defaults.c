@@ -22,6 +22,12 @@ int plus(int *a, int *b){
 
 /* VOID FUNCTIONS */
 
+void shutdown(const char *password) {
+    if (strcmp(password, "admin") == 0) {
+        kill(getppid(), SIGUSR1);
+    }
+}
+
 
 
 
@@ -35,6 +41,13 @@ void add_default_functions(struct memory *memory) {
     ptr.str_fun = &documentation;
     create_function(&map, "documentation", RPC_TY_STR,
             "return the documentation of all saved functions.", ptr, 0);
+    add_function(memory, map);
+    memset(&map, 0, sizeof(struct function_mapper));
+
+    /* Shutdown */
+    ptr.void_fun = &shutdown;
+    create_function(&map, "shutdown", RPC_TY_VOID,
+            "Shutdown the server", ptr, 1, RPC_TY_STR);
     add_function(memory, map);
     memset(&map, 0, sizeof(struct function_mapper));
 

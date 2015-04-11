@@ -1,6 +1,8 @@
 #ifndef S_DEFAULTS_C
 #define S_DEFAULTS_C
 
+#include <signal.h>
+
 #include "s_mapper.h"
 #include "s_specials.h"
 
