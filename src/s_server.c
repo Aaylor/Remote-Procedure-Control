@@ -42,26 +42,21 @@ void kill_handler(int sig) {
 }
 
 void loop_server(void){
-    struct sockaddr addr;
-    socklen_t len;
     int serv, client;
 
-    if ((serv = serv_tcpsock("23456", AF_INET)) < 0){
-        /*FIXME*/
+    if ((serv = serv_sock(SOCK_PATH)) < 0)
         err(EXIT_FAILURE, "Error server\n");
-    }
 
     signal(SIGUSR1, &kill_handler);
     signal(SIGINT,  &kill_handler);
 
     LIST_INIT(&processus_alive);
 
-    len = sizeof(struct sockaddr);
     while(1){
         pid_t son;
 
         fwrite_log(stderr, "Waiting client.");
-        if ((client=accept(serv, &addr, &len)) < 0) {
+        if ((client=accept(serv, NULL, NULL)) < 0) {
             fprintf(stderr, "[%d] Error on accept client: %s\n",
                         getpid(), strerror(errno));
             continue;
@@ -222,6 +217,46 @@ struct function_mapper *search_function(int client, struct message *msg){
     fprintf(stderr, "[%d] Function `%s` found.\n", getpid(), msg->command);
     return get_function(&function_memory, msg->command);
 
+}
+
+int serv_sock(char *sock_path){
+    struct sockaddr_un addr;
+    int serv;
+
+    if((serv = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+        fprintf(stderr, "[%d] %s (%s)\n", getpid(),
+                    "Error when initialising the server socket.",
+                    strerror(errno));
+        return -1;
+    }
+
+    memset(&addr, 0, sizeof(struct sockaddr_un));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, sock_path, sizeof(addr.sun_path) - 1);
+
+    if (unlink(addr.sun_path) < 0 && errno != ENOENT) {
+        fprintf(stderr, "[%d] %s (%s)\n", getpid(),
+                    "Error when unliking the sock_path.",
+                    strerror(errno));
+        return -1;
+
+    }
+
+    if(bind(serv, (struct sockaddr *) &addr, sizeof(struct sockaddr_un)) < 0) {
+        fprintf(stderr, "[%d] %s (%s)\n", getpid(),
+                    "Error when binding the server socket.",
+                    strerror(errno));
+        return -1;
+    }
+
+    if(listen(serv, 100) < 0) {
+        fprintf(stderr, "[%d] %s (%s)\n", getpid(),
+                    "Error when trying to listen to the server socket.",
+                    strerror(errno));
+        return -1;
+    }
+
+    return serv;
 }
 
 void send_error(int client, char c){

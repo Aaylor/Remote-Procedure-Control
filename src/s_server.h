@@ -15,11 +15,12 @@
 #include <errno.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/un.h>
+#include <sys/socket.h>
 #include <string.h>
 
 #include <sys/time.h>
 
-#include "libnet.h"
 #include "u_log.h"
 #include "u_rpc_data.h"
 #include "s_defaults.h"
@@ -108,6 +109,16 @@ void verification_function(int client, struct function_mapper *f, struct message
  * @param msg The message send by the client.
  */
 struct function_mapper *search_function(int client, struct message *msg);
+
+
+/**
+ * @brief Creates a server unix socket, binds it and listens to the desired
+ * path.
+ * @param sock_path The path on which the server socket must to be binded.
+ * @return The filedescriptor of the resulting server socket if the operation
+ * is succesfull, -1 else.
+ */
+int serv_sock(char *sock_path);
 
 /**
  * @brief Function taking a client and send him an error message.
