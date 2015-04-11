@@ -39,19 +39,6 @@ SERVER_UNIT_TEST = tests/check_server
 
 
 
-#=-=-=-=-=-= Librairies variables -=-=-=-=-=-=-=#
-
-LIBNET=lib/libnet
-LIBNET_SRC=$(LIBNET)/src
-NET=net
-
-ifeq ($(UNAME),Darwin)
-	LIBNET_DYN=$(LIBNET)/libnet.dylib
-else
-	LIBNET_DYN=$(LIBNET)/libnet.so
-endif
-
-
 #=-=-=-=-=-=-=-= Documentation =-=-=-=-=-=-=-=-=#
 
 DOXYGEN=$(shell which doxygen)
@@ -64,7 +51,7 @@ DOC_FOLDER=doc/rpc
 
 .PHONY: all doc doc-clean generate libs-clean clean tests
 
-all: libs generate $(TARGETS)
+all: generate $(TARGETS)
 
 generate:
 	@ echo "Generating some files... (can take a while)"
@@ -79,28 +66,20 @@ generate:
 		fi; \
 	done
 
-libs: $(LIBNET_DYN)
-
-$(LIBNET_DYN):
-	@echo "=-=-= making libnet =-=-=-=-=-=-=-=-=-="
-	@make dyn -C $(LIBNET)
-	@echo "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
-
 $(BIN)client: $(CLIENT_OBJECTS) $(UTIL_OBJECTS)
-	$(CC) -L$(LIBNET) -o $@ $^ -l$(NET)
+	$(CC) -o $@ $^
 
 $(BIN)server: $(SERVER_OBJECTS) $(UTIL_OBJECTS)
-	$(CC) -L$(LIBNET) -o $@ $^ -l$(NET)
+	$(CC) -o $@ $^
 
 $(SRC)client.o: $(UTIL_HEADERS)
 $(SRC)server.o: $(UTIL_HEADERS)
 
-#FIXME: better rule
-tests: $(LIBNET_DYN)
-	cd src; $(CC) -I../$(LIBNET_SRC) -c *.c -c -D UNIT_TEST
-	$(CC) -Isrc -Llib -lcheck -L$(LIBNET) -l$(NET) $(UTIL_UNIT_TEST).c -o \
+tests:
+	cd src; $(CC) -c *.c -c -D UNIT_TEST
+	$(CC) -Isrc -Llib -lcheck $(UTIL_UNIT_TEST).c -o \
 		$(UTIL_UNIT_TEST).utest $(OBJECTS)
-	$(CC) -Isrc -Llib -lcheck -L$(LIBNET) -l$(NET) $(SERVER_UNIT_TEST).c \
+	$(CC) -Isrc -Llib -lcheck $(SERVER_UNIT_TEST).c \
 		-o $(SERVER_UNIT_TEST).utest $(OBJECTS)
 	@for t in tests/*.utest; do						\
 		echo "\n~~~ $$t ~~~\n";						\
@@ -110,7 +89,7 @@ tests: $(LIBNET_DYN)
 	@rm -rf src/*.o
 
 %.o: %.c %.h
-	$(CC) -I$(LIBNET_SRC) -o $@ -c $< $(CFLAGS)
+	$(CC) -o $@ -c $< $(CFLAGS)
 
 doc:
 	$(DOXYGEN) $(DOXYGEN_FLAGS) $(DOXYGEN_MAIN_CONF) > /dev/null
@@ -118,9 +97,6 @@ doc:
 doc-clean:
 	rm -rf $(DOC_FOLDER)
 
-libs-clean:
-	@make clean -C $(LIBNET)
-
-clean: doc-clean libs-clean
+clean: doc-clean
 	rm -f $(OBJECTS) $(BIN)client $(BIN)server tests/*.utest
 
