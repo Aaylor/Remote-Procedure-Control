@@ -23,6 +23,11 @@
 #include "u_log.h"
 
 
+/* UNIX SOCKETS */
+
+#define SOCK_PATH "/tmp/rcp_socket"
+
+
 /* SENDER PROTOCOL (client → server):
  *  <message_length : int [4 octet]>
  *  <command_length : int [4 octet]>
