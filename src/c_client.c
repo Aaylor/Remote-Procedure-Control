@@ -14,7 +14,6 @@ int external_call(const char *cmd, int type, void *ret, ...){
     struct message msg;
 
     /* Socket */
-    int clt = 0;
 
     /* Calculate the numer of arguments */
     va_start(ap, ret);
@@ -40,19 +39,26 @@ int external_call(const char *cmd, int type, void *ret, ...){
     /* Generate the message */
     create_message(&msg, cmd, type, nb_args, args);
 
-    if( (clt = sendCmd(&msg)) < 0){
+    if( transmition(ret, &msg) < 0 )
         succes = -1;
-        goto external_call_free;
+
+    free_message(&msg);
+    free(args);
+
+    return succes;
+}
+
+int transmition(void *ret, struct message *msg){
+    int clt = 0, succes = 0;
+
+    if( (clt = sendCmd(msg)) < 0){
+        return -1;
     }
 
-    if(getAnswer(clt, type, ret) < 0)
+    if(getAnswer(clt, msg->return_type, ret) < 0)
         succes = -1;
 
     close(clt);
-
-  external_call_free :
-    free_message(&msg);
-    free(args);
 
     return succes;
 }
@@ -94,7 +100,7 @@ int sendCmd(struct message *msg){
     }
 
     if( send(clt, (void *)serial, size, 0) < 0) {
-        fprintf(stderr, "Unable send the request... \n");
+        perror("Unable send the request... \n");
         close(clt);
         clt = -1;
     }
@@ -258,7 +264,7 @@ int check_command(int argc, char **argv, int current_cpt) {
     return nb_arg;
 }
 
-void parse_command(struct message *msg, int argc, char **argv,
+void parse_command(struct message *msg, int *ret, int argc, char **argv,
         int current_cpt) {
     int cpt, arg_cpt, nb_arg;
     struct rpc_arg *arg;
@@ -281,6 +287,7 @@ void parse_command(struct message *msg, int argc, char **argv,
         exit(EXIT_FAILURE);
     }
     msg->return_type = returned_type(argv[current_cpt + 2]);
+    *ret = msg->return_type;
 
     arg_cpt = 0;
     for(cpt = current_cpt + 3; cpt < argc; cpt += 2) {
@@ -325,8 +332,9 @@ void parse_command(struct message *msg, int argc, char **argv,
 }
 
 int main(int argc, char **argv) {
-    int cpt;
+    int cpt, type;
     struct message msg;
+    void *ret = NULL;
 
 #ifdef DEBUGLOG
     int __debug_i;
@@ -351,8 +359,24 @@ int main(int argc, char **argv) {
             }
             call_shutdown(argv[cpt]);
         } else if (STR_EQ(cmd, "-c") || STR_EQ(cmd, "--command")) {
-            parse_command(&msg, argc, argv, cpt + 1);
-            /* TODO: do something with msg */
+            parse_command(&msg, &type, argc, argv, cpt + 1);
+
+            if( transmition(ret, &msg) <0 )
+                exit(EXIT_FAILURE);
+
+            switch(type){
+                case RPC_TY_INT:
+                    printf("%d", *(int *)ret);
+                    break;
+                case RPC_TY_STR:
+                    printf("%s", (char *)ret);
+                    break;
+                case RPC_TY_VOID:
+                    printf("Execution succes !");
+                    break;
+            }
+
+            free_message(&msg);
             break; /* parse_command take the whole command line */
         } else {
             fprintf(stderr, "Unknown command `%s`.\n", argv[cpt]);

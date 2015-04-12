@@ -42,6 +42,8 @@ int external_call
     (const char *cmd, int type, void *ret, ...
      /* void *arg_i, int type_i, NULL */);
 
+int transmition(void *ret, struct message *msg);
+
 /**
  * @brief Creates a client unix server and connect it to the server socket
  * binded with the given path.
