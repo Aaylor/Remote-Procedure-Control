@@ -335,7 +335,7 @@ void parse_command(struct message *msg, int argc, char **argv, int current_cpt) 
 int main(int argc, char **argv) {
     int cpt;
     struct message msg;
-    void *ret = NULL;
+    void *ret;
 
 #ifdef DEBUGLOG
     int __debug_i;
@@ -367,6 +367,29 @@ int main(int argc, char **argv) {
             __debug_display_message(&msg);
 #endif
 
+            switch(msg.return_type) {
+                case RPC_TY_INT:
+                    ret = malloc(sizeof(int));
+                    if (ret == NULL) {
+                        perror("malloc()");
+                        exit(EXIT_FAILURE);
+                    }
+                    break;
+                case RPC_TY_STR:
+                    ret = malloc(256); /* FIXME */
+                    if (ret == NULL) {
+                        perror("malloc()");
+                        exit(EXIT_FAILURE);
+                    }
+                    break;
+                case RPC_TY_VOID:
+                    ret = NULL;
+                    break;
+                default:
+                    fprintf(stderr, "Return type failed.\n");
+                    exit(EXIT_FAILURE);
+            }
+
             if( transmition(ret, &msg) <0 )
                 exit(EXIT_FAILURE);
 
@@ -381,6 +404,9 @@ int main(int argc, char **argv) {
                     printf("Execution succes !");
                     break;
             }
+
+            if (ret != NULL)
+                free(ret);
 
             free_message(&msg);
             break; /* parse_command take the whole command line */
