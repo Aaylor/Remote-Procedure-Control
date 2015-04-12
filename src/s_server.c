@@ -101,6 +101,8 @@ void check_client_track(void) {
     while(p != NULL) {
         int info, err;
 
+        usleep(200);
+
         next = p->processus_alives.le_next;
 
         res = waitpid(p->son, &info, WNOHANG);
@@ -140,7 +142,7 @@ void check_client_track(void) {
             fflush(stderr);
 
             LIST_REMOVE(p, processus_alives);
-            send_error(p->client_fd, RPC_RET_NO_ANSWER);
+            /*send_error(p->client_fd, RPC_RET_NO_ANSWER);*/
             close(p->client_fd);
             free(p);
         } else {
