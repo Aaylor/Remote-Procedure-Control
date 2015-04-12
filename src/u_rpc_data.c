@@ -534,6 +534,19 @@ int deserialize_answer(struct rpc_arg *ret, int size,
 
 #ifdef DEBUGLOG
 
+char * __debug_type_to_string(char type) {
+    switch(type) {
+        case RPC_TY_VOID:
+            return "<< VOID >>";
+        case RPC_TY_INT:
+            return "<< INTEGER >>";
+        case RPC_TY_STR:
+            return "<< STRING >>";
+        default:
+            return "<< INTERNAL ERROR >>";
+    }
+}
+
 void __debug_display_message(struct message *msg) {
     int cpt;
 
@@ -546,16 +559,19 @@ void __debug_display_message(struct message *msg) {
 
     fprintf(stderr, "  %-20s: %d\n", "command_length", msg->command_length);
     fprintf(stderr, "  %-20s: %s\n", "command", msg->command);
-    fprintf(stderr, "  %-20s: %d\n", "return_type", msg->return_type);
+    fprintf(stderr, "  %-20s: %s\n", "return_type",
+            __debug_type_to_string(msg->return_type));
     fprintf(stderr, "  %-20s: %d\n", "argc", msg->argc);
 
     cpt = 0;
-    while (cpt < msg-> argc) {
-        fprintf(stderr, "  argv[%d]: %d\n", cpt, msg->argv[cpt].typ);
+    while (cpt < msg->argc) {
+
+        fprintf(stderr, "  argv[%d]: %s\n", cpt,
+                __debug_type_to_string(msg->argv[cpt].typ));
 
         switch(msg->argv[cpt].typ) {
             case RPC_TY_VOID:
-                fprintf(stderr, "  argv[%d]: %s\n", cpt, "NULL");
+                fprintf(stderr, "  argv[%d]: %s\n", cpt, "<< VOID >>");
                 break;
 
             case RPC_TY_INT:
