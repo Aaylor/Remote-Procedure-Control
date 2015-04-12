@@ -264,8 +264,7 @@ int check_command(int argc, char **argv, int current_cpt) {
     return nb_arg;
 }
 
-void parse_command(struct message *msg, int *ret, int argc, char **argv,
-        int current_cpt) {
+void parse_command(struct message *msg, int argc, char **argv, int current_cpt) {
     int cpt, arg_cpt, nb_arg;
     struct rpc_arg *arg;
 
@@ -286,8 +285,8 @@ void parse_command(struct message *msg, int *ret, int argc, char **argv,
         perror("malloc()");
         exit(EXIT_FAILURE);
     }
+    strcpy(msg->command, argv[current_cpt]);
     msg->return_type = returned_type(argv[current_cpt + 2]);
-    *ret = msg->return_type;
 
     arg_cpt = 0;
     for(cpt = current_cpt + 3; cpt < argc; cpt += 2) {
@@ -319,12 +318,14 @@ void parse_command(struct message *msg, int *ret, int argc, char **argv,
                 break;
 
             case RPC_TY_VOID:
-                fprintf(stderr, "Should not be void argument.\n");
+                fprintf(stderr, "Void is not allowed as parameter type.\n");
                 exit(EXIT_FAILURE);
 
             default:
                 fprintf(stderr, "UNKNOWN TYPE.\n");
         }
+
+        ++arg_cpt;
     }
 
     msg->argc = nb_arg;
@@ -332,7 +333,7 @@ void parse_command(struct message *msg, int *ret, int argc, char **argv,
 }
 
 int main(int argc, char **argv) {
-    int cpt, type;
+    int cpt;
     struct message msg;
     void *ret = NULL;
 
@@ -359,12 +360,17 @@ int main(int argc, char **argv) {
             }
             call_shutdown(argv[cpt]);
         } else if (STR_EQ(cmd, "-c") || STR_EQ(cmd, "--command")) {
-            parse_command(&msg, &type, argc, argv, cpt + 1);
+            parse_command(&msg, argc, argv, cpt + 1);
+
+#ifdef DEBUGLOG
+            fprintf(stderr, "command option generated following message:\n");
+            __debug_display_message(&msg);
+#endif
 
             if( transmition(ret, &msg) <0 )
                 exit(EXIT_FAILURE);
 
-            switch(type){
+            switch(msg.return_type){
                 case RPC_TY_INT:
                     printf("%d", *(int *)ret);
                     break;
