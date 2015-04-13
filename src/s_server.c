@@ -263,8 +263,11 @@ void send_error(int client, char c){
     int size;
     char *msg;
     msg = serialize_answer(&size, c, NULL);
+    fprintf(stdout, "[%d] %s.\n", getpid(), "Invalid request from client.");
     if(send(client, msg, size, 0) < 0)
         err(EXIT_FAILURE, "error fail to send");
+    fprintf(stdout, "[%d] %s.\n", getpid(),
+                "An error message was send to the client.");
     exit(EXIT_SUCCESS);
 }
 

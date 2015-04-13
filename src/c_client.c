@@ -188,6 +188,8 @@ void printErrorStatus(int status){
         case RPC_RET_WRONG_ARG:
             fprintf(stderr, "The given arguments were wrong... \n");
             break;
+        case RPC_WRONG_NUMBER_ARGS:
+            fprintf(stderr, "The number of arguments is wrong... \n");
         case RPC_RET_NO_ANSWER:
             fprintf(stderr, "The execution of the function gives no answer... \n");
             break;
@@ -395,13 +397,13 @@ int main(int argc, char **argv) {
 
             switch(msg.return_type){
                 case RPC_TY_INT:
-                    printf("%d", *(int *)ret);
+                    printf("%d\n", *(int *)ret);
                     break;
                 case RPC_TY_STR:
-                    printf("%s", (char *)ret);
+                    printf("%s\n", (char *)ret);
                     break;
                 case RPC_TY_VOID:
-                    printf("Execution succes !");
+                    printf("Execution succes !\n");
                     break;
             }
 
