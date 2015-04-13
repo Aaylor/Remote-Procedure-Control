@@ -397,10 +397,10 @@ int main(int argc, char **argv) {
 
             switch(msg.return_type){
                 case RPC_TY_INT:
-                    printf("%d\n", *(int *)ret);
+                    printf("%d", *(int *)ret);
                     break;
                 case RPC_TY_STR:
-                    printf("%s\n", (char *)ret);
+                    printf("%s", (char *)ret);
                     break;
                 case RPC_TY_VOID:
                     printf("Execution succes !\n");
