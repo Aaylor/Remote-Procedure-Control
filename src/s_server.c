@@ -1,6 +1,4 @@
 
-#include <stdlib.h>
-
 #include "s_server.h"
 
 
@@ -8,6 +6,8 @@ int current_client = -1;
 
 LIST_HEAD(processus_list, alive) processus_alive;
 
+
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void timeout_handler(int sig) {
     fprintf(stderr, "[%d] Timeout (%d) at client %d.\n",
@@ -43,6 +43,7 @@ void kill_handler(int sig) {
 
 void loop_server(void){
     int serv, client;
+    pthread_t tracker;
 
     if ((serv = serv_sock(SOCK_PATH)) < 0)
         err(EXIT_FAILURE, "Error server\n");
@@ -51,6 +52,8 @@ void loop_server(void){
     signal(SIGINT,  &kill_handler);
 
     LIST_INIT(&processus_alive);
+
+    pthread_create(&tracker, NULL, &check_client_track, NULL);
 
     while(1){
         pid_t son;
@@ -74,8 +77,17 @@ void loop_server(void){
             gestion_client(client);
         }
 
-        check_client_track();
+        if (pthread_mutex_lock(&mutex) != 0) {
+            perror("pthread_mutex_lock()");
+            continue;
+        }
+
         keep_track_of_client(son, client);
+
+        if (pthread_mutex_unlock(&mutex) != 0) {
+            perror("pthread_mutex_unlock()");
+            continue;
+        }
     }
 
 }
@@ -93,59 +105,89 @@ void keep_track_of_client(pid_t client_pid, int client_fd) {
     LIST_INSERT_HEAD(&processus_alive, current_processus, processus_alives);
 }
 
-void check_client_track(void) {
-    int res;
-    struct alive *p, *next;
+void *check_client_track() {
+    int error;
 
-    p = processus_alive.lh_first;
-    while(p != NULL) {
-        int info, err;
+    error = 0;
+    while(1) {
+        int res;
+        unsigned int sleep_time;
+        struct alive *p, *next;
 
-        next = p->processus_alives.le_next;
+        if (error >= 3) {
+            fprintf(stderr, "[%d:cct] Too much errors. Killing check_client_track thread.\n", getpid());
+            pthread_exit(NULL);
+        }
 
-        res = waitpid(p->son, &info, WNOHANG);
-        if (res == 0) {
-            /* Has not finished yet. */
+        fprintf(stderr, "[%d] Tracker is now sleeping.\n", getpid());
+        sleep_time = 5;
+        while(sleep_time > 0) {
+            sleep_time = sleep(sleep_time);
+        }
+
+        if (pthread_mutex_lock(&mutex) != 0) {
+            perror("pthread_mutex_lock()");
+            ++error;
             continue;
-        } else if (res == -1) {
-            /* error */
-            err = errno;
-            switch(err) {
-                case ECHILD:
-                    fprintf(stderr, "[%d] CLIENT_TRACK_SYSTEM: Unexistant client (%d).\n",
-                                getpid(), p->son);
-                    LIST_REMOVE(p, processus_alives);
-                    close(p->client_fd);
-                    free(p);
-                    break;
-                default:
-                    fprintf(stderr, "[%d] CLIENT_TRACK_SYSTEM: Unknown error. Do nothing on pid (%d).\n",
-                                getpid(), p->son);
-                    break;
+        }
+        fprintf(stderr, "[%d] Tracker is now working.\n", getpid());
 
+        p = processus_alive.lh_first;
+        while(p != NULL) {
+            int info, err;
+
+            next = p->processus_alives.le_next;
+
+            res = waitpid(p->son, &info, WNOHANG);
+            if (res == 0) {
+                /* Has not finished yet. */
+                continue;
+            } else if (res == -1) {
+                /* error */
+                err = errno;
+                switch(err) {
+                    case ECHILD:
+                        fprintf(stderr, "[%d] CLIENT_TRACK_SYSTEM: Unexistant client (%d).\n",
+                                    getpid(), p->son);
+                        LIST_REMOVE(p, processus_alives);
+                        close(p->client_fd);
+                        free(p);
+                        break;
+                    default:
+                        fprintf(stderr, "[%d] CLIENT_TRACK_SYSTEM: Unknown error. Do nothing on pid (%d).\n",
+                                    getpid(), p->son);
+                        break;
+
+                }
+                /* TODO: check what kind of error. */
             }
-            /* TODO: check what kind of error. */
+
+            if (WIFEXITED(info)) {
+                fprintf(stderr, "[%d] CLIENT_TRACK_SYSTEM: Removing client (%d).\n",
+                            getpid(), p->son);
+                LIST_REMOVE(p, processus_alives);
+                free(p);
+            } else if (WIFSIGNALED(info)) {
+                fprintf(stderr, "[%d] CLIENT_TRACK_SYSTEM: Errour found on client (%d). Killing processus and sending error message.\n",
+                            getpid(), p->son);
+
+                LIST_REMOVE(p, processus_alives);
+                send_error(p->client_fd, RPC_RET_NO_ANSWER);
+                close(p->client_fd);
+                free(p);
+            } else {
+                /* Should not appear... */
+            }
+
+            p = next;
+            continue;
         }
 
-        if (WIFEXITED(info)) {
-            fprintf(stderr, "[%d] CLIENT_TRACK_SYSTEM: Removing client (%d).\n",
-                        getpid(), p->son);
-            LIST_REMOVE(p, processus_alives);
-            free(p);
-        } else if (WIFSIGNALED(info)) {
-            fprintf(stderr, "[%d] CLIENT_TRACK_SYSTEM: Errour found on client (%d). Killing processus and sending error message.\n",
-                        getpid(), p->son);
-
-            LIST_REMOVE(p, processus_alives);
-            send_error(p->client_fd, RPC_RET_NO_ANSWER);
-            close(p->client_fd);
-            free(p);
-        } else {
-            /* Should not appear... */
+        if (pthread_mutex_unlock(&mutex) != 0) {
+            perror("pthread_mutex_unlock()");
+            ++error;
+            continue;
         }
-
-        p = next;
-        continue;
     }
 }
 

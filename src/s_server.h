@@ -13,13 +13,15 @@
 
 #include <err.h>
 #include <errno.h>
-#include <unistd.h>
+#include <pthread.h>
 #include <signal.h>
-#include <sys/un.h>
-#include <sys/socket.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
+#include <sys/un.h>
 #include <sys/time.h>
+#include <sys/socket.h>
 
 #include "u_log.h"
 #include "u_rpc_data.h"
@@ -77,7 +79,7 @@ void keep_track_of_client(pid_t client_pid, int client_fd);
  * @brief Check every tracked client, and remove them if they're not alive
  * anymore.
  */
-void check_client_track(void);
+void *check_client_track();
 
 /**
  * @brief execute a double fork to verify if after 5 seconds the process is
