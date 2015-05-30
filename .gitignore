@@ -4,3 +4,5 @@ src/*.o
 doc/rpc
 *.utest
 src/s_function_handler.c
+server
+client
