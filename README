@@ -1,2 +1,35 @@
-Procédures Distance
+Procédures Distante
 ===================
+
+
+Compilation :
+    make
+
+
+
+Tests unitaires :
+    make tests
+
+
+
+Serveurs :
+    ./server
+
+
+
+Clients :
+    Donne la liste des fonctions enregistrées sur le serveur.
+    ./client --list
+
+    Eteindre le serveur (sous mode pseudo admin).
+    ./client --shutdown password
+    Par défaut, le password est "admin".
+
+    Lancer une commande.
+    ./client --command COMMAND_NAME -ret -TYP [-TYP1 ARG1 ... -TYPN ARGN]
+    Où TYP est l'un des trois : str int void
+    Si le type est 'void', ARG ne doit pas être écrit.
+
+    Pour plus d'informations :
+    ./client --help
+
