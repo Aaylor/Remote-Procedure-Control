@@ -19,14 +19,27 @@ char *documentation(void) {
 
 char *concat(const char *s, const char *s2) {
     char *new_str;
+
     new_str = malloc(strlen(s) + strlen(s2) + 1);
+    if (new_str == NULL) {
+        return NULL;
+    }
+
     strcpy(new_str, s);
     strcat(new_str, s2);
     return new_str;
 }
 
 char *identity(char *c) {
-    return c;
+    char *s;
+    
+    s = malloc(strlen(c) + 1);
+    if (s == NULL) {
+        return NULL;
+    }
+
+    strcpy(s, c);
+    return s;
 }
 
 
