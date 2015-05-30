@@ -156,7 +156,7 @@ START_TEST (check_de_serialize_message) {
     ck_assert_int_eq(tmp, 4);
     cpt += sizeof(int);
 
-    memcpy(buf, serialized + cpt, 4); buf[5] = '\0';
+    memcpy(buf, serialized + cpt, 4); buf[4] = '\0';
     ck_assert_int_eq(strcmp(buf, "func"), 0);
     cpt += 4;
 
