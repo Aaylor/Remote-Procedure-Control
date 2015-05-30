@@ -159,7 +159,6 @@ void *check_client_track() {
                         break;
 
                 }
-                /* TODO: check what kind of error. */
             }
 
             if (WIFEXITED(info)) {
