@@ -68,10 +68,12 @@ generate:
 
 $(BIN)client: $(CLIENT_OBJECTS) $(UTIL_OBJECTS)
 	$(CC) -o $@ $^
+	@ rm -f client
 	@ ln -s $@ .
 
 $(BIN)server: $(SERVER_OBJECTS) $(UTIL_OBJECTS)
 	$(CC) -o $@ $^
+	@ rm -f server
 	@ ln -s $@ .
 
 $(SRC)client.o: $(UTIL_HEADERS)
