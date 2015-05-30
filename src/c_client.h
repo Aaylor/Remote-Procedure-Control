@@ -22,6 +22,28 @@
 #include "u_log.h"
 #include "u_rpc_data.h"
 
+#define HELP                                                            \
+    "Available commands :\n\n"                                          \
+                                                                        \
+    "  ./client --help\n"                                               \
+    "  ./client -h\n"                                                   \
+    "\tdisplay this help.\n\n"                                          \
+                                                                        \
+    "  ./client --list\n"                                               \
+    "  ./client -l\n"                                                   \
+    "\tgives the list of registers functions in the server.\n\n"        \
+                                                                        \
+    "  ./client --shutdown password\n"                                  \
+    "  ./client -s password\n"                                          \
+    "\tshutdown the server; by default, password is admin.\n\n"         \
+                                                                        \
+    "  ./client --command CMD -ret -TYP [-TYP1 ARG1 ... -TYPN ARGN]\n"  \
+    "  ./client -c CMD -ret -TYP [-TYP1 ARG1 ... -TYPN ARGN]\n"         \
+    "\tCMD is the command name to call.\n"                              \
+    "\t-ret TYP is the return rype.\n"                                  \
+    "\tTYP has to be int, str or void.\n"                               \
+    "\tif TYP is void, ARG must not be set.\n"
+
 
 /**
  * @brief Call a certain function *cmd* that will be executed on the server

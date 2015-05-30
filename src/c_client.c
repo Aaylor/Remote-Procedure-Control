@@ -345,6 +345,10 @@ void parse_command(struct message *msg, int argc, char **argv, int current_cpt) 
     msg->argv = arg;
 }
 
+static void help(void) {
+    printf(HELP);
+}
+
 int main(int argc, char **argv) {
     int cpt;
     struct message msg;
@@ -372,6 +376,9 @@ int main(int argc, char **argv) {
                 exit(EXIT_FAILURE);
             }
             call_shutdown(argv[cpt]);
+        } else if (STR_EQ(cmd, "-h") || STR_EQ(cmd, "--help")) {
+            help();
+            exit(EXIT_SUCCESS);
         } else if (STR_EQ(cmd, "-c") || STR_EQ(cmd, "--command")) {
             parse_command(&msg, argc, argv, cpt + 1);
 
@@ -425,6 +432,7 @@ int main(int argc, char **argv) {
             break; /* parse_command take the whole command line */
         } else {
             fprintf(stderr, "Unknown command `%s`.\n", argv[cpt]);
+            help();
             exit(EXIT_FAILURE);
         }
 
