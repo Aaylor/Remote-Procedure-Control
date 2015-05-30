@@ -12,7 +12,7 @@ void execute_function(int client, char **return_t,
         case RPC_TY_VOID:
             switch(msg->argc){
 
-            $range i 0..5
+            $range i 0..255
             $for i [[
 
                 $range j 1..i
@@ -35,7 +35,7 @@ void execute_function(int client, char **return_t,
         case RPC_TY_INT:
             switch(msg->argc){
 
-            $range i 0..5
+            $range i 0..255
             $for i [[
 
                 $range j 1..i
@@ -59,7 +59,7 @@ void execute_function(int client, char **return_t,
         case RPC_TY_STR:
             switch(msg->argc){
 
-            $range i 0..5
+            $range i 0..255
             $for i [[
 
                 $range j 1..i
