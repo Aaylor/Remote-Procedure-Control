@@ -219,17 +219,17 @@ void execute_client(int client){
 
     free(ret);
     close(client);
-    exit(EXIT_SUCCESS);
+    _exit(EXIT_SUCCESS);
 }
 
 void send_answer(int client, char *ret, int size){
     if(send(client, ret, size, 0) < 0) {
         fprintf(stderr, "[%d] Error on sending answer. Shutdown the service. (%s)\n",
                 getpid(), strerror(errno));
-        exit(EXIT_FAILURE);
+        _exit(EXIT_FAILURE);
     }
 
-    exit(EXIT_SUCCESS);
+    _exit(EXIT_SUCCESS);
 }
 
 void verification_function(int client, struct function_mapper *f, struct message *msg){
@@ -309,7 +309,7 @@ void send_error(int client, char c){
         err(EXIT_FAILURE, "error fail to send");
     fprintf(stdout, "[%d] %s.\n", getpid(),
                 "An error message was send to the client.");
-    exit(EXIT_SUCCESS);
+    _exit(EXIT_SUCCESS);
 }
 
 void read_msg(int client, struct message *msg){
@@ -320,7 +320,7 @@ void read_msg(int client, struct message *msg){
         fprintf(stderr, "[%d] %s (%s)\n", getpid(),
                     "Error on receiving the message size.",
                     strerror(errno));
-        exit(EXIT_FAILURE);
+        _exit(EXIT_FAILURE);
     }
 
 #ifdef DEBUGLOG
@@ -334,7 +334,7 @@ void read_msg(int client, struct message *msg){
         fprintf(stderr, "[%d] %s (%s)\n", getpid(),
                     "Error on receiving the message.",
                     strerror(errno));
-        exit(EXIT_FAILURE);
+        _exit(EXIT_FAILURE);
     }
 
 #ifdef DEBUGLOG
@@ -345,7 +345,7 @@ void read_msg(int client, struct message *msg){
     if(deserialize_message(msg, size, from) == -1) {
         fprintf(stderr, "[%d] %s\n", getpid(),
                     "Error on deserialize the message. Killing the process.");
-        exit(EXIT_FAILURE);
+        _exit(EXIT_FAILURE);
     }
 
     free(from);
@@ -353,6 +353,11 @@ void read_msg(int client, struct message *msg){
 
 
 #ifndef UNIT_TEST
+
+void clear_default_mapper(void) {
+    fwrite_log(stderr, "Clear default mapper before exiting...");
+    clear_mapper(&function_memory);
+}
 
 /**
  * @brief Entry point.
@@ -365,6 +370,12 @@ int main(void)
 
     /* generate doc */
     generate_documentation(NULL, &function_memory);
+
+    if (atexit(&clear_default_mapper) == -1) {
+        fwrite_log(stderr, "Fail to register default mapper at exit...");
+    } else {
+        fwrite_log(stderr, "Registering default_mapper at exit.");
+    }
 
     /* loop */
     fwrite_log(stderr, "Server loop.");
