@@ -106,7 +106,9 @@ int sendCmd(struct message *msg){
     }
 
   endSendCmd:
-    free(serial);
+    if (serial != NULL)
+        free(serial);
+
     return clt;
 }
 
@@ -154,12 +156,12 @@ int getAnswer(int clt, int type, void *ret){
         case RPC_TY_VOID:
             break;
         case RPC_TY_STR:
-            if (ret != NULL) {
+            if (ret != NULL && ret_arg.data != NULL) {
                 strcpy(ret, ret_arg.data);
             }
             break;
         case RPC_TY_INT:
-            if (ret != NULL) {
+            if (ret != NULL && ret_arg.data != NULL) {
                 *(int *)ret = *(int *)ret_arg.data;
             }
             break;
@@ -168,10 +170,15 @@ int getAnswer(int clt, int type, void *ret){
     }
 
   desalocateRetArg:
-    if(ret_arg.typ == RPC_TY_INT || ret_arg.typ == RPC_TY_STR)
+    if((ret_arg.typ == RPC_TY_INT || ret_arg.typ == RPC_TY_STR)
+            && ret_arg.data != NULL) {
         free(ret_arg.data);
+    }
+
   endGetAnswer:
-    free(msg);
+    if (msg != NULL)
+        free(msg);
+
     return succes;
 }
 
@@ -197,16 +204,20 @@ void printErrorStatus(int status){
             fprintf(stderr, "The return type expected was wrong... \n");
             break;
         default:
-            fprintf(stderr, "The server has encountered an inexpected error... \n");
+            fprintf(stderr, "The client has encountered an inexpected error... \n");
             break;
     }
 }
 
 void call_documentation(void) {
-    char doc[1024];
+    char doc[2048];
 
-    external_call("documentation", RPC_TY_STR, doc, NULL, NULL);
+    if (external_call("documentation", RPC_TY_STR, doc, NULL, NULL) == -1) {
+        exit(EXIT_FAILURE);
+    }
+
     printf("%s", doc);
+
     exit(EXIT_SUCCESS);
 }
 
@@ -218,7 +229,7 @@ void call_shutdown(char *password) {
 
 #define STR_EQ(str1, str2) strcmp(str1, str2) == 0
 
-int is_type_command(const char *cmd) {
+static inline int is_type_command(const char *cmd) {
     return STR_EQ(cmd, "-int") || STR_EQ(cmd, "-str") || STR_EQ(cmd, "-void");
 }
 
