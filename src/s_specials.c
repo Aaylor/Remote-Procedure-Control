@@ -120,7 +120,7 @@ int generate_documentation(int *size, struct memory *memory) {
         free(__doc_string);
     }
 
-    __doc_string = malloc(generated_size);
+    __doc_string = malloc(generated_size + 1);
     if (__doc_string == NULL) {
         return 1;
     }
@@ -193,6 +193,7 @@ int generate_documentation(int *size, struct memory *memory) {
     }
 
     __doc_string[cpt++] = '\n';
+    __doc_string[cpt]   = '\0';
 
     return 0;
 }

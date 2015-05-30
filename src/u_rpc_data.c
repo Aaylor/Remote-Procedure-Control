@@ -526,7 +526,7 @@ int deserialize_answer(struct rpc_arg *ret, int size,
              * What what !? Valgrind on OSX raise errors when using strncpy !?
              * strncpy(ret->data, serialized_ret + 3, data_length);
              */
-            memcpy(ret->data, serialized_ret, data_length);
+            memcpy(ret->data, serialized_ret + 3, data_length);
             ((char *)ret->data)[data_length] = '\0';
         }
         else
