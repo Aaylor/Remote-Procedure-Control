@@ -491,7 +491,7 @@ int deserialize_answer(struct rpc_arg *ret, int size,
     char status;
     int  data_length;
 
-    if(size < 1 || ret == NULL) {
+    if(size < 1 || ret == NULL || serialized_ret == NULL) {
         return -1;
     }
 
@@ -508,6 +508,7 @@ int deserialize_answer(struct rpc_arg *ret, int size,
             ret->data = malloc(sizeof(int));
             if(deserialize_integer(ret->data, serialized_ret + 2) < 0)
                 fprintf(stderr, "Can't deserialize the integer... \n");
+            return -1;
         }
         else if(ret->typ == RPC_TY_STR){
             /* Get back data lenght */
@@ -521,7 +522,12 @@ int deserialize_answer(struct rpc_arg *ret, int size,
             }
 
             /* Get back the string */
-            strncpy(ret->data, serialized_ret + 3, data_length);
+            /*
+             * What what !? Valgrind on OSX raise errors when using strncpy !?
+             * strncpy(ret->data, serialized_ret + 3, data_length);
+             */
+            memcpy(ret->data, serialized_ret, data_length);
+            ((char *)ret->data)[data_length] = '\0';
         }
         else
             ret->data = NULL;
