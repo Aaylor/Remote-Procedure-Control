@@ -76,8 +76,8 @@ void execute_function(int client, char **return_t,
             }
 
             args.typ = RPC_TY_STR;
-            *return_t = serialize_answer(size, RPC_RET_OK, &args);
             if (args.data != NULL) {
+                *return_t = serialize_answer(size, RPC_RET_OK, &args);
                 free(args.data);
             }
             break;
