@@ -1,6 +1,6 @@
 UNAME = $(shell uname -s)
 
-CC=gcc -g
+CC=gcc
 PYTHON=python
 
 ifeq ($(DEBUG),1)
