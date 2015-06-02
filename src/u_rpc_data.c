@@ -150,10 +150,13 @@ int arg_size(int argc, struct rpc_arg *args) {
 
             case RPC_TY_INT:
                 memcpy(&tmp, args[cpt].data, sizeof(int));
+
                 if (tmp < 0) {
                     ++size;
                     tmp = -tmp;
                 }
+
+                if (tmp == 0) ++ size;
 
                 while(tmp != 0) {
                     tmp /= 10;
@@ -185,7 +188,7 @@ int serialize_integer(int i, char *buf) {
     }
 
     if (i == 0) {
-        buf[0] = (char)1;
+        buf[0] = 1;
         buf[1] = '0';
         return 2;
     }
@@ -223,6 +226,7 @@ int deserialize_integer(int *result, const char *msg) {
     res = 0;
 
     size = (int)msg[0] + 1;
+    printf("Size: %d\n", size);
 
     cpt  = 1;
     if (msg[cpt] == '-') {
@@ -231,10 +235,12 @@ int deserialize_integer(int *result, const char *msg) {
     }
 
     while (cpt < size) {
+        printf ("Current : %d, %c\n", msg[cpt], msg[cpt]);
         res *= 10;
         res += msg[cpt] - '0';
         ++cpt;
     }
+    printf("xxxx\n");
 
     if (neg) res *= -1;
     memcpy(result, &res, sizeof(int));
@@ -291,6 +297,10 @@ char *serialize_message(int *msg_size, struct message *msg) {
             case RPC_TY_INT:
                 tmp = serialize_integer(*(int *)arg->data,
                         serialized_msg + cpt);
+                printf("tmp: %d, %c\n", (serialized_msg + cpt)[0],
+                        (serialized_msg + cpt)[0]);
+                printf("tmp: %d, %c\n\n", (serialized_msg + cpt)[1],
+                        (serialized_msg + cpt)[1]);
                 cpt += tmp;
                 break;
 

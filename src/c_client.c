@@ -432,8 +432,8 @@ int main(int argc, char **argv) {
             if (ret != NULL)
                 free(ret);
 
-            free_message(&msg);
-            break; /* parse_command take the whole command line */
+            /*free_message(&msg);*/
+            exit(EXIT_SUCCESS);
         } else {
             fprintf(stderr, "Unknown command `%s`.\n", argv[cpt]);
             help();
