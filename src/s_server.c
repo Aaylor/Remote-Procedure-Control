@@ -69,10 +69,9 @@ void loop_server(void){
         son = fork();
         if (son < 0) { /* error */
             fwrite_log(stderr, "Fail to fork.");
-            /* FIXME: send error here. */
+            close(son);
             continue;
-        }
-        else if (son == 0) { /* son */
+        } else if (son == 0) { /* son */
             fwrite_log(stderr, "New process: handling client.");
             gestion_client(client);
         }

@@ -1,8 +1,11 @@
 bin/
-src/*.o
 .ycm_*
 doc/rpc
 *.utest
 src/s_function_handler.c
 server
 client
+*.o
+*.cm*
+call_client
+call_client_ml
