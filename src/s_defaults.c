@@ -62,6 +62,8 @@ int division(int *a, int *b) {
 
 int power(int *a, int *b) {
     int cpt, res;
+    if(*b == 0)
+        return 1;
     cpt = *b;
     res = *a;
     while (cpt > 1) {
