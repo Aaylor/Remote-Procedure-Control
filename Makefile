@@ -72,7 +72,7 @@ $(BIN)client: $(CLIENT_OBJECTS) $(UTIL_OBJECTS)
 	@ ln -s $@ .
 
 $(BIN)server: $(SERVER_OBJECTS) $(UTIL_OBJECTS)
-	$(CC) -o $@ $^
+	$(CC) -pthread -o $@ $^
 	@ rm -f server
 	@ ln -s $@ .
 

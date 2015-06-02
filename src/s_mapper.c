@@ -5,7 +5,7 @@ int create_function(struct function_mapper *mapper, const char *name,
         char return_type, const char* description,
         fun_ptr_u fun_ptr, int argc, ...) {
     int     cpt;
-    size_t  fname_length, description_length;
+    size_t  fname_length;
     va_list ap;
 
     if (mapper == NULL) {
@@ -28,7 +28,7 @@ int create_function(struct function_mapper *mapper, const char *name,
     mapper->fun.argc        = argc;
 
     if (description == NULL) {
-        description_length = 0;
+        mapper->description_length = 0;
     } else {
         mapper->description_length = strlen(description);
         strcpy(mapper->description, description);
