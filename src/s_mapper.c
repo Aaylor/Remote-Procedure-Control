@@ -181,6 +181,8 @@ void __print_function_mapper_state(struct function_mapper *mapper) {
 
 void __print_function_type_state(struct function_t *ft) {
     int cpt;
+    unsigned int i;
+    unsigned char *p;
 
     if (ft == NULL) {
         fprintf(stderr,"    ft is null.");
@@ -189,13 +191,28 @@ void __print_function_type_state(struct function_t *ft) {
     fprintf(stderr, "    return type:  %d\n", ft->return_type);
     switch (ft->return_type) {
         case RPC_TY_VOID:
-            fprintf(stderr, "    function ptr: %p\n", ft->fun_ptr.void_fun);
+            p = (unsigned char *)&ft->fun_ptr.void_fun;
+            fprintf(stderr, "    function ptr:");
+            for(i = 0; i < sizeof(void_ptr); i++){
+                fprintf(stderr, "%02x ", p[i]);
+            }
+            fprintf(stderr, "\n");
             break;
         case RPC_TY_INT:
-            fprintf(stderr, "    function ptr: %p\n", ft->fun_ptr.int_fun);
+            p = (unsigned char *)&ft->fun_ptr.int_fun;
+            fprintf(stderr, "    function ptr:");
+            for(i = 0; i < sizeof(int_ptr); i++){
+                fprintf(stderr, "%02x ", p[i]);
+            }
+            fprintf(stderr, "\n");
             break;
         case RPC_TY_STR:
-            fprintf(stderr, "    function ptr: %p\n", ft->fun_ptr.str_fun);
+            p = (unsigned char *)&ft->fun_ptr.str_fun;
+            fprintf(stderr, "    function ptr:");
+            for(i = 0; i < sizeof(str_ptr); i++){
+                fprintf(stderr, "%02x ", p[i]);
+            }
+            fprintf(stderr, "\n");
             break;
         default:
             fprintf(stderr, "    function ptr: invalid address");
