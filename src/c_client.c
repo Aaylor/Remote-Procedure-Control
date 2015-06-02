@@ -301,6 +301,10 @@ void parse_command(struct message *msg, int argc, char **argv, int current_cpt) 
     strcpy(msg->command, argv[current_cpt]);
     msg->return_type = returned_type(argv[current_cpt + 2]);
 
+    if(strcmp(argv[3], "-ret") != 0){
+        command_line_error(2);
+    }
+
     arg_cpt = 0;
     for(cpt = current_cpt + 3; cpt < argc; cpt += 2) {
         int integer_result;
