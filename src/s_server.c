@@ -172,7 +172,6 @@ void *check_client_track() {
 
                 LIST_REMOVE(p, processus_alives);
                 send_error(p->client_fd, RPC_RET_NO_ANSWER);
-                close(p->client_fd);
                 free(p);
             } else {
                 /* Should not appear... */
@@ -309,6 +308,7 @@ void send_error(int client, char c){
         err(EXIT_FAILURE, "error fail to send");
     fprintf(stdout, "[%d] %s.\n", getpid(),
                 "An error message was send to the client.");
+    close(client);
     _exit(EXIT_SUCCESS);
 }
 
