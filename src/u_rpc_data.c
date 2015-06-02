@@ -506,9 +506,10 @@ int deserialize_answer(struct rpc_arg *ret, int size,
 
         if(ret->typ == RPC_TY_INT){
             ret->data = malloc(sizeof(int));
-            if(deserialize_integer(ret->data, serialized_ret + 2) < 0)
+            if(deserialize_integer(ret->data, serialized_ret + 2) < 0) {
                 fprintf(stderr, "Can't deserialize the integer... \n");
-            return -1;
+                return -1;
+            }
         }
         else if(ret->typ == RPC_TY_STR){
             /* Get back data lenght */
