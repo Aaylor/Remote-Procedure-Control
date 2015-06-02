@@ -226,7 +226,6 @@ int deserialize_integer(int *result, const char *msg) {
     res = 0;
 
     size = (int)msg[0] + 1;
-    printf("Size: %d\n", size);
 
     cpt  = 1;
     if (msg[cpt] == '-') {
@@ -235,12 +234,10 @@ int deserialize_integer(int *result, const char *msg) {
     }
 
     while (cpt < size) {
-        printf ("Current : %d, %c\n", msg[cpt], msg[cpt]);
         res *= 10;
         res += msg[cpt] - '0';
         ++cpt;
     }
-    printf("xxxx\n");
 
     if (neg) res *= -1;
     memcpy(result, &res, sizeof(int));
@@ -297,10 +294,6 @@ char *serialize_message(int *msg_size, struct message *msg) {
             case RPC_TY_INT:
                 tmp = serialize_integer(*(int *)arg->data,
                         serialized_msg + cpt);
-                printf("tmp: %d, %c\n", (serialized_msg + cpt)[0],
-                        (serialized_msg + cpt)[0]);
-                printf("tmp: %d, %c\n\n", (serialized_msg + cpt)[1],
-                        (serialized_msg + cpt)[1]);
                 cpt += tmp;
                 break;
 
