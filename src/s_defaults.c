@@ -32,7 +32,6 @@ char *concat(const char *s, const char *s2) {
 
 char *identity(char *c) {
     char *s;
-    
     s = malloc(strlen(c) + 1);
     if (s == NULL) {
         return NULL;
@@ -65,7 +64,7 @@ int power(int *a, int *b) {
     int cpt, res;
     cpt = *b;
     res = *a;
-    while (cpt > 0) {
+    while (cpt > 1) {
         res *= *a;
         --cpt;
     }
